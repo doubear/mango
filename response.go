@@ -30,7 +30,7 @@ func (this *response) WriteJSON(v interface{}) {
 	err := en.Encode(v)
 
 	if err != nil {
-		LogFatal(err.Error())
+		defaultLogger.Fatal(err.Error())
 	}
 }
 

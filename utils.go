@@ -47,5 +47,5 @@ func StartTrace(id string) {
 func StopTrace(id string) {
 	e := time.Since(traces[id])
 	delete(traces, id)
-	LogDebugf("duration %s spent %dns", id, e.Nanoseconds())
+	defaultLogger.Debugf("duration %s spent %dns", id, e.Nanoseconds())
 }

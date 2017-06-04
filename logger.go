@@ -20,17 +20,14 @@ const (
 	FlagLevel
 	FlagColor
 	FlagID
-)
-
-const (
 	dateMask = FlagYear | FlagMonth | FlagDay | FlagHour | FlagMinute | FlagSecond
 )
 
 const (
-	LogLevelDebug = iota
-	LogLevelInfo
-	LogLevelWarn
-	LogLevelFatal
+	LogDebug = iota
+	LogInfo
+	LogWarn
+	LogFatal
 )
 
 const (
@@ -54,33 +51,14 @@ var (
 	}
 
 	colors = map[int]int{
-		LogLevelDebug: fNone,
-		LogLevelInfo:  fGreen,
-		LogLevelWarn:  fYellow,
-		LogLevelFatal: fRed,
+		LogDebug: fNone,
+		LogInfo:  fGreen,
+		LogWarn:  fYellow,
+		LogFatal: fRed,
 	}
 
 	flag = FlagColor | FlagLevel | FlagHour | FlagMinute | FlagSecond
-
-	outlet = os.Stdout
-
-	logable = LogLevelDebug
 )
-
-//SetLoggerFlag resets the logger's flags.
-func SetLoggerFlag(i int) {
-	flag = i
-}
-
-//SetLoggerOutput resets the logger's outlet.
-func SetLoggerOutput(o *os.File) {
-	outlet = o
-}
-
-//SetLoggerLogable resets the logger's min-log-level.
-func SetLoggerLogable(l int) {
-	logable = l
-}
 
 type message struct {
 	id      int64
@@ -148,12 +126,18 @@ type Logger struct {
 	logable int
 }
 
-func (this *Logger) SetLoggerOutput(o *os.File) {
+//SetPrefix reset prefix of every logs.
+func (this *Logger) SetPrefix(s string) {
+	this.prefix = s
+}
+
+//SetOutput reset logs endpoint.
+func (this *Logger) SetOutput(o *os.File) {
 	this.out = o
 }
 
-//SetLoggableLevel resets loggable min level.
-func (this *Logger) SetLoggableLevel(l int) {
+//SetLevel resets loggable min level.
+func (this *Logger) SetLevel(l int) {
 	this.logable = l
 }
 
@@ -227,36 +211,40 @@ func (this *Logger) printf(l int, s string, a ...interface{}) {
 	}
 }
 
+//Debug writes a debug level log.
 func (this *Logger) Debug(s string) {
-	this.print(LogLevelDebug, s)
+	this.print(LogDebug, s)
 }
 
 func (this *Logger) Debugf(s string, a ...interface{}) {
-	this.printf(LogLevelDebug, s, a...)
+	this.printf(LogDebug, s, a...)
 }
 
+//Info writes a info level log.
 func (this *Logger) Info(s string) {
-	this.print(LogLevelInfo, s)
+	this.print(LogInfo, s)
 }
 
 func (this *Logger) Infof(s string, a ...interface{}) {
-	this.printf(LogLevelInfo, s, a...)
+	this.printf(LogInfo, s, a...)
 }
 
+//Warn writes a warn level log.
 func (this *Logger) Warn(s string) {
-	this.print(LogLevelWarn, s)
+	this.print(LogWarn, s)
 }
 
 func (this *Logger) Warnf(s string, a ...interface{}) {
-	this.printf(LogLevelWarn, s, a...)
+	this.printf(LogWarn, s, a...)
 }
 
+//Fatal writes a fatal level log.
 func (this *Logger) Fatal(s string) {
-	this.print(LogLevelFatal, s)
+	this.print(LogFatal, s)
 }
 
 func (this *Logger) Fatalf(s string, a ...interface{}) {
-	this.printf(LogLevelFatal, s, a...)
+	this.printf(LogFatal, s, a...)
 }
 
 //NewLogger create logger instance.
@@ -267,44 +255,8 @@ func NewLogger() *Logger {
 		0,
 		os.Stdout,
 		"",
-		LogLevelDebug,
+		LogDebug,
 	}
 }
 
 var defaultLogger = NewLogger()
-
-//LogDebug writes a debug level log.
-func LogDebug(s string) {
-	defaultLogger.Debug(s)
-}
-
-func LogDebugf(s string, a ...interface{}) {
-	defaultLogger.Debugf(s, a...)
-}
-
-//LogInfo writes a info level log.
-func LogInfo(s string) {
-	defaultLogger.Info(s)
-}
-
-func LogInfof(s string, a ...interface{}) {
-	defaultLogger.Infof(s, a...)
-}
-
-//LogWarn writes a warn level log.
-func LogWarn(s string) {
-	defaultLogger.Warn(s)
-}
-
-func LogWarnf(s string, a ...interface{}) {
-	defaultLogger.Warnf(s, a...)
-}
-
-//LogFatal writes a fatal level log then exit program.
-func LogFatal(s string) {
-	defaultLogger.Fatal(s)
-}
-
-func LogFatalf(s string, a ...interface{}) {
-	defaultLogger.Fatalf(s, a...)
-}

@@ -17,7 +17,7 @@ func Record() MiddlerFunc {
 		st := time.Now()
 		ctx.Next()
 		dur := time.Since(st)
-		LogInfo(fmt.Sprintf("%s %s %s time: %dns", ctx.IP, ctx.Method, ctx.RequestURI, dur.Nanoseconds()))
+		ctx.Logger.Info(fmt.Sprintf("%s %s %s time: %dns", ctx.IP, ctx.Method, ctx.RequestURI, dur.Nanoseconds()))
 	}
 }
 
@@ -34,7 +34,7 @@ func Recovery() MiddlerFunc {
 					err = fmt.Errorf("%v", v)
 				}
 
-				LogWarn(err.Error())
+				ctx.Logger.Warn(err.Error())
 
 				ctx.W.SetStatus(http.StatusInternalServerError)
 			}
