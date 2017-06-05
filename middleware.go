@@ -16,8 +16,17 @@ func Record() MiddlerFunc {
 	return func(ctx *Context) {
 		st := time.Now()
 		ctx.Next()
-		dur := time.Since(st)
-		ctx.Logger.Info(fmt.Sprintf("%s %s %s time: %dns", ctx.IP, ctx.Method, ctx.RequestURI, dur.Nanoseconds()))
+		dur := NumericTimeSmartFormat(time.Since(st).Nanoseconds())
+
+		ctx.Logger.Infof(
+			"%s %s %s %d %dbytes %s",
+			ctx.ClientIP(),
+			ctx.R.Method,
+			ctx.R.RequestURI,
+			ctx.W.Status(),
+			ctx.W.Size(),
+			dur,
+		)
 	}
 }
 
@@ -47,7 +56,7 @@ func Recovery() MiddlerFunc {
 //Cors addtional CORS middleware
 func Cors() MiddlerFunc {
 	return func(ctx *Context) {
-		if ctx.Method == "OPTIONS" {
+		if ctx.R.Method == "OPTIONS" {
 			ctx.W.Header().Add("Access-Control-Allow-Origin", "*")
 			ctx.W.Header().Add("Access-Control-Allow-Methods", "*")
 			ctx.W.Header().Add("Access-Control-Allow-Headers", "*")

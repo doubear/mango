@@ -3,22 +3,76 @@ package mango
 import "net/http"
 import "strings"
 import "net"
+import "io"
+
+const proxymark = "X-Forwarded-For"
 
 //MiddlerFunc used as a middleware
 type MiddlerFunc func(*Context)
 
 //Context income request context
 type Context struct {
-	*http.Request
+	R        *http.Request
 	W        *response
 	params   map[string]string
 	middlers []MiddlerFunc
-	IP       string
-	ViaProxy bool //shows the request is sent via proxy server.
 	Logger   *Logger
 }
 
-//Param get value of path param
+//Next executes the next middleware func
+func (this *Context) Next() {
+	if len(this.middlers) > 0 {
+		m := this.middlers[0]
+		this.middlers = this.middlers[1:]
+		m(this)
+	}
+}
+
+//ClientIP returns connected client's IP address.
+func (this *Context) ClientIP() string {
+	ip := this.R.RemoteAddr
+
+	if this.R.Header.Get(proxymark) != "" {
+		//using proxy server
+		proxy := strings.Split(this.R.Header.Get(proxymark), ",")[0]
+		proxy = strings.TrimSpace(proxy)
+		proxyIP := net.ParseIP(proxy)
+		if false == proxyIP.IsGlobalUnicast() {
+			ip = proxyIP.String()
+		}
+	}
+
+	ip = strings.Split(ip, ":")[0] //to fixed r.RemoteAddr format.
+
+	return ip
+}
+
+//File receives file from MULTI-PART FORM.
+func (this *Context) File(field string, saveTo io.Writer) (string, bool) {
+	f, h, err := this.R.FormFile(field)
+	if err != nil {
+		return "", false
+	}
+
+	_, err = io.Copy(saveTo, f)
+	if err != nil {
+		return "", false
+	}
+
+	return h.Filename, true
+}
+
+//Form retrieves value from POST form.
+func (this *Context) Form(field string) string {
+	return this.R.PostFormValue(field)
+}
+
+//Query retrieves value from GET params.
+func (this *Context) Query(field string) string {
+	return this.R.URL.Query().Get(field)
+}
+
+//Param retrieves value from PATH params.
 func (this *Context) Param(k, d string) string {
 	if v, ok := this.params[k]; ok {
 		return v
@@ -27,46 +81,22 @@ func (this *Context) Param(k, d string) string {
 	return d
 }
 
-//Next executes the next middleware func
-func (this *Context) Next() {
-	m := this.middlers[0]
-	this.middlers = this.middlers[1:]
-	m(this)
+//Input retrieves value with given field name from both Form and Query.
+func (this *Context) Input(field string) string {
+	if v := this.Form(field); v != "" {
+		return v
+	}
+
+	return this.Query(field)
 }
 
 //NewContext create new Context instance
 func newContext(r *http.Request, w http.ResponseWriter, ps map[string]string, ms []MiddlerFunc) *Context {
-	ip, isProxy := getRealClientIP(r)
-
 	return &Context{
 		r,
 		newResponse(w),
 		ps,
 		ms,
-		ip,
-		isProxy,
 		NewLogger(),
 	}
-}
-
-const proxymark = "X-Forwarded-For"
-
-func getRealClientIP(r *http.Request) (string, bool) {
-	ip := r.RemoteAddr
-	is := false
-
-	if r.Header.Get(proxymark) != "" {
-		//using proxy server
-		proxy := strings.Split(r.Header.Get(proxymark), ",")[0]
-		proxy = strings.TrimSpace(proxy)
-		proxyIP := net.ParseIP(proxy)
-		if false == proxyIP.IsGlobalUnicast() {
-			ip = proxyIP.String()
-			is = true
-		}
-	}
-
-	ip = strings.Split(ip, ":")[0] //to fixed r.RemoteAddr format.
-
-	return ip, is
 }

@@ -11,7 +11,7 @@ type GroupFunc func(*GroupRouter)
 type GroupRouter struct {
 	paths    []string
 	middlers []MiddlerFunc
-	router   *Router
+	router   *router
 }
 
 func (this *GroupRouter) path(s string) string {
@@ -40,7 +40,7 @@ func (this *GroupRouter) Route(methods []string, path string, fn HandlerFunc, ms
 	path = this.path(path)
 	ms = this.middler(ms)
 
-	this.router.Route(methods, path, fn, ms)
+	this.router.route(methods, path, fn, ms)
 }
 
 //Get register a GET route.

@@ -49,3 +49,21 @@ func StopTrace(id string) {
 	delete(traces, id)
 	defaultLogger.Debugf("duration %s spent %dns", id, e.Nanoseconds())
 }
+
+//NumericTimeSmartFormat format the given nanosecond.
+func NumericTimeSmartFormat(t int64) string {
+	var f float64
+	switch {
+	case t > 1000000000: //s
+		f = float64(t) / 1000000000
+		return fmt.Sprintf("%.2fs", f)
+	case t > 1000000: //ms
+		f = float64(t) / 1000000
+		return fmt.Sprintf("%.2fms", f)
+	case t > 1000: //us
+		f = float64(t) / 1000
+		return fmt.Sprintf("%.2fμs", f)
+	}
+
+	return fmt.Sprintf("%dns", t)
+}

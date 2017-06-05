@@ -13,7 +13,7 @@ import (
 )
 
 type Mango struct {
-	router   *Router
+	router   *router
 	middlers []MiddlerFunc
 }
 
@@ -23,39 +23,39 @@ func (this *Mango) Use(m MiddlerFunc) {
 
 //Get register a GET route.
 func (this *Mango) Get(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.router.Route([]string{"GET"}, path, fn, middlers)
+	this.router.route([]string{"GET"}, path, fn, middlers)
 }
 
 //Post register a POST route.
 func (this *Mango) Post(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.router.Route([]string{"POST"}, path, fn, middlers)
+	this.router.route([]string{"POST"}, path, fn, middlers)
 }
 
 //Put register a PUT route.
 func (this *Mango) Put(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.router.Route([]string{"PUT"}, path, fn, middlers)
+	this.router.route([]string{"PUT"}, path, fn, middlers)
 }
 
 //Delete register a DELETE route.
 func (this *Mango) Delete(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.router.Route([]string{"DELETE"}, path, fn, middlers)
+	this.router.route([]string{"DELETE"}, path, fn, middlers)
 }
 
 //Any register a route without request type limit.
 func (this *Mango) Any(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.router.Route([]string{"GET", "POST", "PUT", "DELETE"}, path, fn, middlers)
+	this.router.route([]string{"GET", "POST", "PUT", "DELETE"}, path, fn, middlers)
 }
 
 func (this *Mango) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	route, params := this.router.Search(r)
+	route, params := this.router.search(r)
 	if route == nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	ms := append(this.middlers, route.MiddlerPool...)
+	ms := append(this.middlers, route.middlerPool...)
 
-	ctx := newContext(r, w, params, append(ms, MiddleWrapper(route.Handler)))
+	ctx := newContext(r, w, params, append(ms, MiddleWrapper(route.handler)))
 	ctx.Next()
 	ctx.W.flush()
 }
@@ -141,12 +141,20 @@ func (this *Mango) StartAutoTLS(addr string, domains ...string) {
 func New() *Mango {
 	m := &Mango{}
 
-	m.router = &Router{
-		make(map[string][]*Route, 0),
-		make(map[string][]*Route, 0),
+	m.router = &router{
+		make(map[string][]*route, 0),
+		make(map[string][]*route, 0),
 	}
 
 	m.middlers = make([]MiddlerFunc, 0)
 
+	return m
+}
+
+//Default returns an Mango instance that uses few middlewares.
+func Default() *Mango {
+	m := New()
+	m.Use(Record())
+	m.Use(Recovery())
 	return m
 }

@@ -1,46 +1,117 @@
 # Mango - keep simple, keep easy to use.
+[![GoDoc](https://godoc.org/github.com/go-mango/mango?status.svg)](https://godoc.org/github.com/go-mango/mango)
+[![Go Report Card](https://goreportcard.com/badge/github.com/go-mango/mango)](https://goreportcard.com/report/github.com/go-mango/mango)
+
+## Quick Start
 
 ```go
-package main
-
-import "github.com/doubear/mango"
-
-//Index index of system
-func Index(ctx *mango.Context) {
-	ctx.W.Write([]byte("hello world"))
-}
-
-func Show(ctx *mango.Context) {
-	id := ctx.Param("id", "")
-	ctx.W.WriteJSON(map[string]interface{}{
-		"id": id,
+func index(ctx *mango.Context) {
+	ctx.JSON(200, map[string]interface{}{
+		"message": "hello mango",
 	})
-}
-
-func ApiV1Show(ctx *mango.Context) {
-	ctx.W.Write([]byte("API.v1"))
-}
-
-func ApiV2Show(ctx *mango.Context) {
-	ctx.W.Write([]byte("hello API.v2"))
 }
 
 func main() {
-	m := mango.New()
-	m.Use(mango.Recovery())
-	m.Use(mango.Record())
-	m.Get("/", Index)
-	m.Group("api", func(s1 *mango.GroupRouter) {
-		s1.Group("v1", func(s2 *mango.GroupRouter) {
-			s2.Get("/", ApiV1Show)
-		})
-
-		s1.Group("v2", func(s2 *mango.GroupRouter) {
-			s2.Get("/", ApiV2Show)
-		})
-	})
-
-	m.Get("/{id}", Show)
-	m.Start("127.0.0.1:9000")
+	m := mango.Default()
+	m.Get("/", index)
+	m.Start(":8080")
 }
 ```
+
+## Route Definition
+
+### Basic Guide
+
+```go
+m.Get("/", index)
+m.Post("/", index)
+m.Put("/", index)
+m.Delete("/", index)
+m.Any("/any", index) //GET,POST,PUT,DELETE
+```
+
+### Routes Group
+
+```go
+m.Group("/api", func(api *mango.GroupRouter) {
+	api.Get("/", getApi)
+	api.Post("/", postApi)
+	api.Put("/", putApi)
+	api.Delete("/", deleteApi)
+	api.Any("/", anyApi) //GET,POST,PUT,DELETE
+})
+```
+
+### Nested Routes Group
+
+```go
+m.Group("/api", func(api *mango.GroupRouter) {
+	api.Group("/v1", func(v1 *mango.GroupRouter) {
+		v1.Get("/", getApiV1)
+		v1.Post("/", postApiV1)
+		v1.Put("/", putApiV1)
+		v1.Delete("/", deleteApiV1)
+		v1.Any("/", anyApiV1) //GET,POST,PUT,DELETE
+	})
+})
+```
+
+### Route Middleware
+
+```go
+func myMiddleware() mango.MiddlerFunc {
+	return func(ctx *mango.Context) {
+
+		//do something before route handler executed.
+
+		ctx.Next()
+
+		//do something before response sent to client.
+	}
+}
+
+m.Use(myMiddleware())
+
+//or
+
+m.Get("/", index, myMiddleware())
+
+//or
+
+m.Group("/api", func(api *mango.GroupRouter){
+
+}, myMiddleware())
+```
+
+## Internals Middleware
+
+1. Record
+2. Recovery
+3. Cors
+4. ...
+
+## Serve Mode
+
+### HTTP Mode
+
+```go
+m.Start(":8080")
+```
+
+### HTTPS Mode
+
+```go
+m.StartTLS(":8080", "cert file content", "key file content")
+```
+
+### HTTPS with Let's encrypt Mode
+
+```go
+m.StartAutoTLS(":8080", "example.org")
+```
+
+## Benchmark
+??? what's that???
+
+## License
+Based on MIT license.

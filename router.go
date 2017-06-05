@@ -11,47 +11,47 @@ var re = regexp.MustCompile("\\{([\\w\\d]+)\\}")
 //HandlerFunc use to handle incoming requests.
 type HandlerFunc func(*Context)
 
-//Route point to a URL path
-type Route struct {
-	Method      string
-	Path        string
-	Pathable    *regexp.Regexp
-	Handler     HandlerFunc
-	MiddlerPool []MiddlerFunc
-	IsStatic    bool
+//route point to a URL path
+type route struct {
+	method      string
+	path        string
+	pathable    *regexp.Regexp
+	handler     HandlerFunc
+	middlerPool []MiddlerFunc
+	isStatic    bool
 }
 
-//Router routes provider
-type Router struct {
-	StaticPool map[string][]*Route
-	Pool       map[string][]*Route
+//router routes provider
+type router struct {
+	StaticPool map[string][]*route
+	Pool       map[string][]*route
 }
 
-//Push an route instance into pool
-func (this *Router) Push(i *Route) {
-	if i.IsStatic {
-		this.StaticPool[i.Method] = append(this.StaticPool[i.Method], i)
+//push an route instance into pool
+func (this *router) push(i *route) {
+	if i.isStatic {
+		this.StaticPool[i.method] = append(this.StaticPool[i.method], i)
 	} else {
-		this.Pool[i.Method] = append(this.Pool[i.Method], i)
+		this.Pool[i.method] = append(this.Pool[i.method], i)
 	}
 }
 
-//Search matched route by given request instance
-func (this *Router) Search(r *http.Request) (*Route, map[string]string) {
+//search matched route by given request instance
+func (this *router) search(r *http.Request) (*route, map[string]string) {
 	var params map[string]string
-	route := this.SearchStaticPool(r)
+	route := this.searchStaticPool(r)
 	if route == nil {
-		route, params = this.SearchPool(r)
+		route, params = this.searchPool(r)
 	}
 
 	return route, params
 }
 
-//SearchStaticPool search route in static pool
-func (this *Router) SearchStaticPool(r *http.Request) *Route {
+//searchStaticPool search route in static pool
+func (this *router) searchStaticPool(r *http.Request) *route {
 	if batch, ok := this.StaticPool[r.Method]; ok {
 		for _, route := range batch {
-			if route.Path == r.RequestURI {
+			if route.path == r.RequestURI {
 				return route
 			}
 		}
@@ -60,14 +60,14 @@ func (this *Router) SearchStaticPool(r *http.Request) *Route {
 	return nil
 }
 
-//SearchPool search route in custom pool
-func (this *Router) SearchPool(r *http.Request) (*Route, map[string]string) {
+//searchPool search route in custom pool
+func (this *router) searchPool(r *http.Request) (*route, map[string]string) {
 	if batch, ok := this.Pool[r.Method]; ok {
 		for _, route := range batch {
-			if route.Pathable.MatchString(r.RequestURI) {
+			if route.pathable.MatchString(r.RequestURI) {
 				params := map[string]string{}
-				names := route.Pathable.SubexpNames()[1:]
-				values := route.Pathable.FindStringSubmatch(r.RequestURI)[1:]
+				names := route.pathable.SubexpNames()[1:]
+				values := route.pathable.FindStringSubmatch(r.RequestURI)[1:]
 
 				if len(names) != len(values) {
 					continue
@@ -85,11 +85,11 @@ func (this *Router) SearchPool(r *http.Request) (*Route, map[string]string) {
 	return nil, nil
 }
 
-//CompilePath compile given path to regexp
+//compilePath compile given path to regexp
 //route path definition may with variables that defined
 //as {uid}, it will compile to (?P<uid>[^/]+) and returns
 //it as regexp.Regexp.
-func (this *Router) CompilePath(path string) (*regexp.Regexp, bool) {
+func (this *router) compilePath(path string) (*regexp.Regexp, bool) {
 	if path == "" {
 		path = "/"
 	}
@@ -105,47 +105,47 @@ func (this *Router) CompilePath(path string) (*regexp.Regexp, bool) {
 	return regexp.MustCompile(pathen), is
 }
 
-//Route register an new route to router.
-func (this *Router) Route(methods []string, path string, fn HandlerFunc, middlers []MiddlerFunc) {
+//route register an new route to router.
+func (this *router) route(methods []string, path string, fn HandlerFunc, middlers []MiddlerFunc) {
 	path = strings.Trim(path, " /")
 	path = "/" + path
 
 	for _, m := range methods {
-		p, s := this.CompilePath(path)
-		route := &Route{
-			Method:      m,
-			Path:        path,
-			Pathable:    p,
-			Handler:     fn,
-			MiddlerPool: middlers,
-			IsStatic:    s,
+		p, s := this.compilePath(path)
+		route := &route{
+			method:      m,
+			path:        path,
+			pathable:    p,
+			handler:     fn,
+			middlerPool: middlers,
+			isStatic:    s,
 		}
 
-		this.Push(route)
+		this.push(route)
 	}
 }
 
 //Get register a GET route.
-func (this *Router) Get(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.Route([]string{"GET"}, path, fn, middlers)
+func (this *router) Get(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
+	this.route([]string{"GET"}, path, fn, middlers)
 }
 
 //Post register a POST route.
-func (this *Router) Post(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.Route([]string{"POST"}, path, fn, middlers)
+func (this *router) Post(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
+	this.route([]string{"POST"}, path, fn, middlers)
 }
 
 //Put register a PUT route.
-func (this *Router) Put(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.Route([]string{"PUT"}, path, fn, middlers)
+func (this *router) Put(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
+	this.route([]string{"PUT"}, path, fn, middlers)
 }
 
 //Delete register a DELETE route.
-func (this *Router) Delete(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.Route([]string{"DELETE"}, path, fn, middlers)
+func (this *router) Delete(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
+	this.route([]string{"DELETE"}, path, fn, middlers)
 }
 
 //Any register a route without request type limit.
-func (this *Router) Any(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.Route([]string{"GET", "POST", "PUT", "DELETE"}, path, fn, middlers)
+func (this *router) Any(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
+	this.route([]string{"GET", "POST", "PUT", "DELETE"}, path, fn, middlers)
 }
