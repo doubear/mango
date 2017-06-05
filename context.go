@@ -4,6 +4,7 @@ import "net/http"
 import "strings"
 import "net"
 import "io"
+import "encoding/json"
 
 const proxymark = "X-Forwarded-For"
 
@@ -88,6 +89,25 @@ func (this *Context) Input(field string) string {
 	}
 
 	return this.Query(field)
+}
+
+//JSON auto-encode given value to json then write it to response.
+func (this *Context) JSON(code int, v interface{}) {
+	this.W.SetStatus(code)
+	e := json.NewEncoder(this.W)
+	e.Encode(v)
+}
+
+//Blob writes given bytes to response.
+func (this *Context) Blob(code int, b []byte) {
+	this.W.SetStatus(code)
+	this.W.Write(b)
+}
+
+//Text writes given string to response.
+func (this *Context) Text(code int, s string) {
+	this.W.SetStatus(code)
+	this.W.WriteString(s)
 }
 
 //NewContext create new Context instance
