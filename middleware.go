@@ -7,12 +7,12 @@ import (
 )
 
 //MiddleWrapper wrap the given fn to middleware
-func MiddleWrapper(fn func(*Context)) MiddlerFunc {
+func MiddleWrapper(fn func(*Context)) MiddleFunc {
 	return fn
 }
 
 //Record log incoming requests to console.
-func Record() MiddlerFunc {
+func Record() MiddleFunc {
 	return func(ctx *Context) {
 		st := time.Now()
 		ctx.Next()
@@ -31,7 +31,7 @@ func Record() MiddlerFunc {
 }
 
 //Recovery record every panic.
-func Recovery() MiddlerFunc {
+func Recovery() MiddleFunc {
 	return func(ctx *Context) {
 		defer func() {
 			if v := recover(); v != nil {
@@ -54,7 +54,7 @@ func Recovery() MiddlerFunc {
 }
 
 //Cors addtional CORS middleware
-func Cors() MiddlerFunc {
+func Cors() MiddleFunc {
 	return func(ctx *Context) {
 		if ctx.R.Method == "OPTIONS" {
 			ctx.W.Header().Add("Access-Control-Allow-Origin", "*")
@@ -68,16 +68,9 @@ func Cors() MiddlerFunc {
 	}
 }
 
-//Static serve static assets
-func Static() MiddlerFunc {
-	return func(ctx *Context) {
-
-	}
-}
-
 //Throttle controls how much request frequency
 //from remote client is allowed.
-func Throttle() MiddlerFunc {
+func Throttle() MiddleFunc {
 	return func(ctx *Context) {
 
 	}

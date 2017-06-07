@@ -9,79 +9,80 @@ type GroupFunc func(*GroupRouter)
 
 //GroupRouter register routes in group.
 type GroupRouter struct {
-	paths    []string
-	middlers []MiddlerFunc
-	router   *router
+	paths   []string
+	middles []MiddleFunc
+	router  *router
 }
 
-func (this *GroupRouter) path(s string) string {
-	paths := this.paths
+func (grt *GroupRouter) path(s string) string {
+	paths := grt.paths
 	s = strings.Trim(s, " /")
 
 	if s != "" {
-		paths = append(this.paths, s)
+		paths = append(grt.paths, s)
 	}
 
 	return "/" + strings.Join(paths, "/")
 }
 
-func (this *GroupRouter) middler(ms []MiddlerFunc) []MiddlerFunc {
-	ms = append(this.middlers, ms...)
+func (grt *GroupRouter) middler(ms []MiddleFunc) []MiddleFunc {
+	ms = append(grt.middles, ms...)
 
 	return ms
 }
 
 //Use register group router middleware.
-func (this *GroupRouter) Use(m MiddlerFunc) {
-	this.middlers = append(this.middlers, m)
+func (grt *GroupRouter) Use(m MiddleFunc) {
+	grt.middles = append(grt.middles, m)
 }
 
-func (this *GroupRouter) Route(methods []string, path string, fn HandlerFunc, ms []MiddlerFunc) {
-	path = this.path(path)
-	ms = this.middler(ms)
+//Route appends group route to base router.
+func (grt *GroupRouter) Route(methods []string, path string, fn HandlerFunc, ms []MiddleFunc) {
+	path = grt.path(path)
+	ms = grt.middler(ms)
 
-	this.router.route(methods, path, fn, ms)
+	grt.router.route(methods, path, fn, ms)
 }
 
 //Get register a GET route.
-func (this *GroupRouter) Get(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.Route([]string{"GET"}, path, fn, middlers)
+func (grt *GroupRouter) Get(path string, fn HandlerFunc, middles ...MiddleFunc) {
+	grt.Route([]string{"GET"}, path, fn, middles)
 }
 
 //Post register a POST route.
-func (this *GroupRouter) Post(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.Route([]string{"POST"}, path, fn, middlers)
+func (grt *GroupRouter) Post(path string, fn HandlerFunc, middles ...MiddleFunc) {
+	grt.Route([]string{"POST"}, path, fn, middles)
 }
 
 //Put register a PUT route.
-func (this *GroupRouter) Put(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.Route([]string{"PUT"}, path, fn, middlers)
+func (grt *GroupRouter) Put(path string, fn HandlerFunc, middles ...MiddleFunc) {
+	grt.Route([]string{"PUT"}, path, fn, middles)
 }
 
 //Delete register a DELETE route.
-func (this *GroupRouter) Delete(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.Route([]string{"DELETE"}, path, fn, middlers)
+func (grt *GroupRouter) Delete(path string, fn HandlerFunc, middles ...MiddleFunc) {
+	grt.Route([]string{"DELETE"}, path, fn, middles)
 }
 
 //Any register a route without request type limit.
-func (this *GroupRouter) Any(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.Route([]string{"GET", "POST", "PUT", "DELETE"}, path, fn, middlers)
+func (grt *GroupRouter) Any(path string, fn HandlerFunc, middles ...MiddleFunc) {
+	grt.Route([]string{"GET", "POST", "PUT", "DELETE"}, path, fn, middles)
 }
 
 //Group create an new subgroup.
-func (this *GroupRouter) Group(path string, fn GroupFunc, middlers ...MiddlerFunc) {
-	paths := this.paths
+func (grt *GroupRouter) Group(path string, fn GroupFunc, middles ...MiddleFunc) {
+	paths := grt.paths
 
 	path = strings.Trim(path, " /")
 	if path != "" {
 		paths = append(paths, path)
 	}
 
-	middlers = append(this.middlers, middlers...)
+	middles = append(grt.middles, middles...)
 
 	fn(&GroupRouter{
 		paths,
-		middlers,
-		this.router,
+		middles,
+		grt.router,
 	})
 }

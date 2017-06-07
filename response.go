@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
+
+	"github.com/go-mango/mango/logger"
 )
 
 //Response customized response struct.
@@ -13,74 +15,75 @@ type response struct {
 	w      http.ResponseWriter
 	io     *bytes.Buffer
 	status int
+	logger *logger.Logger
 }
 
 //Write response data to buffer.
-func (this *response) Write(b []byte) (int, error) {
-	return this.io.Write(b)
+func (w *response) Write(b []byte) (int, error) {
+	return w.io.Write(b)
 }
 
 //WriteString writes string to response body.
-func (this *response) WriteString(s string) (int, error) {
-	return this.Write([]byte(s))
+func (w *response) WriteString(s string) (int, error) {
+	return w.Write([]byte(s))
 }
 
-func (this *response) WriteJSON(v interface{}) {
-	en := json.NewEncoder(this)
+func (w *response) WriteJSON(v interface{}) {
+	en := json.NewEncoder(w)
 	err := en.Encode(v)
 
 	if err != nil {
-		defaultLogger.Fatal(err.Error())
+		w.logger.Fatal(err.Error())
 	}
 }
 
 //Header returns http.Header.
-func (this *response) Header() http.Header {
-	return this.w.Header()
+func (w *response) Header() http.Header {
+	return w.w.Header()
 }
 
 //Clear clear buffered data.
-func (this *response) Clear() {
-	this.io.Reset()
+func (w *response) Clear() {
+	w.io.Reset()
 }
 
 //Size returns total size of response body.
-func (this *response) Size() int {
-	return this.io.Len()
+func (w *response) Size() int {
+	return w.io.Len()
 }
 
 //Status returns status code.
-func (this *response) Status() int {
-	return this.status
+func (w *response) Status() int {
+	return w.status
 }
 
 //SetStatus reset status of response.
-func (this *response) SetStatus(c int) {
-	this.status = c
+func (w *response) SetStatus(c int) {
+	w.status = c
 }
 
 //Flush all buffered data to client.
-func (this *response) flush() {
-	this.w.WriteHeader(this.status)
-	_, e := this.w.Write(this.io.Bytes())
+func (w *response) flush() {
+	w.w.WriteHeader(w.status)
+	_, e := w.w.Write(w.io.Bytes())
 
 	if e != nil {
 		panic(e.Error())
 	}
 
-	this.Clear()
+	w.Clear()
 }
 
 //Pusher returns http.Pusher.
-func (this *response) Pusher() (http.Pusher, bool) {
-	p, ok := this.w.(http.Pusher)
+func (w *response) Pusher() (http.Pusher, bool) {
+	p, ok := w.w.(http.Pusher)
 
 	return p, ok
 }
 
 //Push handles http.Pusher within a closure.
-func (this *response) Push(fn func(http.Pusher)) bool {
-	p, ok := this.Pusher()
+func (w *response) Push(fn func(http.Pusher)) bool {
+	p, ok := w.Pusher()
 
 	if ok {
 		fn(p)
@@ -90,15 +93,15 @@ func (this *response) Push(fn func(http.Pusher)) bool {
 }
 
 //Hijacker returns http.Hijacker.
-func (this *response) Hijacker() (http.Hijacker, bool) {
-	h, ok := this.w.(http.Hijacker)
+func (w *response) Hijacker() (http.Hijacker, bool) {
+	h, ok := w.w.(http.Hijacker)
 
 	return h, ok
 }
 
 //Hijack handles http.Hijacker within a closure.
-func (this *response) Hijack(fn func(net.Conn, *bufio.ReadWriter)) bool {
-	h, ok := this.Hijacker()
+func (w *response) Hijack(fn func(net.Conn, *bufio.ReadWriter)) bool {
+	h, ok := w.Hijacker()
 
 	if ok {
 		conn, io, err := h.Hijack()
@@ -111,10 +114,16 @@ func (this *response) Hijack(fn func(net.Conn, *bufio.ReadWriter)) bool {
 	return ok
 }
 
-func newResponse(w http.ResponseWriter) *response {
-	return &response{
-		w,
-		&bytes.Buffer{},
-		http.StatusOK,
-	}
+//SetCookie add a cookie to response header.
+func (w *response) SetCookie(c *http.Cookie) {
+	http.SetCookie(w.w, c)
+}
+
+//DelCookie delete specified cookie.
+func (w *response) DelCookie(name string) {
+	http.SetCookie(w.w, &http.Cookie{
+		Name:   name,
+		Value:  "",
+		MaxAge: -1,
+	})
 }

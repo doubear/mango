@@ -1,4 +1,4 @@
-package mango
+package logger
 
 import (
 	"fmt"
@@ -36,22 +36,4 @@ func DateFormat(t time.Time, f string) string {
 //Int2Str convert int to string with prefix padding.
 func int2Str(i int64, w int) string {
 	return fmt.Sprintf("%0"+strconv.Itoa(w)+"d", i)
-}
-
-//NumericTimeSmartFormat format the given nanosecond.
-func NumericTimeSmartFormat(t int64) string {
-	var f float64
-	switch {
-	case t > 1000000000: //s
-		f = float64(t) / 1000000000
-		return fmt.Sprintf("%.2fs", f)
-	case t > 1000000: //ms
-		f = float64(t) / 1000000
-		return fmt.Sprintf("%.2fms", f)
-	case t > 1000: //us
-		f = float64(t) / 1000
-		return fmt.Sprintf("%.2fμs", f)
-	}
-
-	return fmt.Sprintf("%dns", t)
 }

@@ -1,6 +1,7 @@
 package mango
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"net/http"
@@ -9,130 +10,168 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-mango/mango/logger"
 	"golang.org/x/crypto/acme/autocert"
 )
 
+//Mango main struct.
 type Mango struct {
-	router   *router
-	middlers []MiddlerFunc
+	router  *router
+	middles []MiddleFunc
+	Logger  *logger.Logger
 }
 
-func (this *Mango) Use(m MiddlerFunc) {
-	this.middlers = append(this.middlers, m)
+//NewContext create new Context instance
+func (m *Mango) newContext(r *http.Request, w http.ResponseWriter, ps map[string]string, ms []MiddleFunc) *Context {
+	return &Context{
+		r,
+		m.newResponse(w),
+		ps,
+		ms,
+		m.Logger,
+	}
+}
+
+func (m *Mango) newResponse(w http.ResponseWriter) *response {
+	return &response{
+		w,
+		&bytes.Buffer{},
+		http.StatusOK,
+		m.Logger,
+	}
+}
+
+//Use appends middleware function to built-in stack.
+func (m *Mango) Use(mf MiddleFunc) {
+	m.middles = append(m.middles, mf)
 }
 
 //Get register a GET route.
-func (this *Mango) Get(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.router.route([]string{"GET"}, path, fn, middlers)
+func (m *Mango) Get(path string, fn HandlerFunc, middles ...MiddleFunc) {
+	m.router.route([]string{"GET"}, path, fn, middles)
 }
 
 //Post register a POST route.
-func (this *Mango) Post(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.router.route([]string{"POST"}, path, fn, middlers)
+func (m *Mango) Post(path string, fn HandlerFunc, middles ...MiddleFunc) {
+	m.router.route([]string{"POST"}, path, fn, middles)
 }
 
 //Put register a PUT route.
-func (this *Mango) Put(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.router.route([]string{"PUT"}, path, fn, middlers)
+func (m *Mango) Put(path string, fn HandlerFunc, middles ...MiddleFunc) {
+	m.router.route([]string{"PUT"}, path, fn, middles)
 }
 
 //Delete register a DELETE route.
-func (this *Mango) Delete(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.router.route([]string{"DELETE"}, path, fn, middlers)
+func (m *Mango) Delete(path string, fn HandlerFunc, middles ...MiddleFunc) {
+	m.router.route([]string{"DELETE"}, path, fn, middles)
 }
 
 //Any register a route without request type limit.
-func (this *Mango) Any(path string, fn HandlerFunc, middlers ...MiddlerFunc) {
-	this.router.route([]string{"GET", "POST", "PUT", "DELETE"}, path, fn, middlers)
+func (m *Mango) Any(path string, fn HandlerFunc, middles ...MiddleFunc) {
+	m.router.route([]string{"GET", "POST", "PUT", "DELETE"}, path, fn, middles)
 }
 
-func (this *Mango) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	route, params := this.router.search(r)
-	if route == nil {
-		w.WriteHeader(http.StatusNotFound)
-		return
+//Static serves static files.
+func (m *Mango) Static() {
+
+}
+
+func (m *Mango) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var rt *route
+	found, params := m.router.search(r)
+	if found == nil {
+		rt = &route{
+			method: "*",
+			path:   "/",
+			handler: func(ctx *Context) {
+				ctx.W.SetStatus(http.StatusNotFound)
+			},
+			middlePool: make([]MiddleFunc, 0),
+		}
+	} else {
+		rt = found
 	}
 
-	ms := append(this.middlers, route.middlerPool...)
+	ms := append(m.middles, rt.middlePool...)
 
-	ctx := newContext(r, w, params, append(ms, MiddleWrapper(route.handler)))
+	ctx := m.newContext(r, w, params, append(ms, MiddleWrapper(rt.handler)))
 	ctx.Next()
 	ctx.W.flush()
 }
 
 //Group create route group with dedicated prefix path.
-func (this *Mango) Group(path string, fn GroupFunc, middlers ...MiddlerFunc) {
+func (m *Mango) Group(path string, fn GroupFunc, middles ...MiddleFunc) {
 	path = strings.Trim(path, " /")
 	fn(&GroupRouter{
 		[]string{path},
-		middlers,
-		this.router,
+		middles,
+		m.router,
 	})
 }
 
-func (this *Mango) start(addr string, fn func(*http.Server)) {
+func (m *Mango) start(addr string, fn func(*http.Server)) {
 	shouldStop := make(chan os.Signal)
 	signal.Notify(shouldStop, os.Interrupt)
 
 	server := &http.Server{
 		Addr:    addr,
-		Handler: this,
+		Handler: m,
 	}
 
 	go func() {
 		fn(server)
 	}()
 
-	defaultLogger.Info("Server is running on " + addr)
+	m.Logger.Info("Server is running on " + addr)
 
 	<-shouldStop
-	defaultLogger.Warn("Server is shutting down...")
+	m.Logger.Warn("Server is shutting down...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	err := server.Shutdown(ctx)
 	if err != nil {
-		defaultLogger.Warn(err.Error())
+		m.Logger.Warn(err.Error())
 	}
 
-	defaultLogger.Info("Server stopped gracefully.")
+	m.Logger.Info("Server stopped gracefully.")
 }
 
 //Start starts a standard http server.
-func (this *Mango) Start(addr string) {
-	this.start(addr, func(s *http.Server) {
+func (m *Mango) Start(addr string) {
+	m.start(addr, func(s *http.Server) {
 		err := s.ListenAndServe()
 		if err != nil {
-			defaultLogger.Warn(err.Error())
+			m.Logger.Warn(err.Error())
 		}
 	})
 }
 
 //StartTLS starts a TLS server.
-func (this *Mango) StartTLS(addr, certFile, keyFile string) {
-	this.start(addr, func(s *http.Server) {
+func (m *Mango) StartTLS(addr, certFile, keyFile string) {
+	m.start(addr, func(s *http.Server) {
 		err := s.ListenAndServeTLS(certFile, keyFile)
 		if err != nil {
-			defaultLogger.Warn(err.Error())
+			m.Logger.Warn(err.Error())
 		}
 	})
 }
 
 //StartAutoTLS starts a TLS server with auto-generated SSL certificate.
 //certificates are signed by let's encrypt.
-func (this *Mango) StartAutoTLS(addr string, domains ...string) {
-	this.start(addr, func(s *http.Server) {
-		m := autocert.Manager{
+func (m *Mango) StartAutoTLS(addr string, domains ...string) {
+	m.start(addr, func(s *http.Server) {
+		c := autocert.Manager{
 			Prompt:     autocert.AcceptTOS,
 			HostPolicy: autocert.HostWhitelist(domains...),
 		}
 
-		s.TLSConfig = &tls.Config{GetCertificate: m.GetCertificate}
+		s.TLSConfig = &tls.Config{GetCertificate: c.GetCertificate}
 
 		err := s.ListenAndServeTLS("", "")
 		if err != nil {
-			defaultLogger.Warn(err.Error())
+			m.Logger.Warn(err.Error())
 		}
 	})
 }
@@ -146,7 +185,9 @@ func New() *Mango {
 		make(map[string][]*route, 0),
 	}
 
-	m.middlers = make([]MiddlerFunc, 0)
+	m.middles = make([]MiddleFunc, 0)
+
+	m.Logger = logger.NewLogger()
 
 	return m
 }
