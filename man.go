@@ -29,6 +29,7 @@ func (m *Mango) newContext(r *http.Request, w http.ResponseWriter, ps map[string
 		ps,
 		ms,
 		m.Logger,
+		map[string]interface{}{},
 	}
 }
 
@@ -71,11 +72,6 @@ func (m *Mango) Any(path string, fn HandlerFunc, middles ...MiddleFunc) {
 	m.router.route([]string{"GET", "POST", "PUT", "DELETE"}, path, fn, middles)
 }
 
-//Static serves static files.
-func (m *Mango) Static() {
-
-}
-
 func (m *Mango) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var rt *route
 	found, params := m.router.search(r)
@@ -83,8 +79,9 @@ func (m *Mango) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		rt = &route{
 			method: "*",
 			path:   "/",
-			handler: func(ctx *Context) {
+			handler: func(ctx *Context) (int, interface{}) {
 				ctx.W.SetStatus(http.StatusNotFound)
+				return 0, nil
 			},
 			middlePool: make([]MiddleFunc, 0),
 		}
@@ -94,7 +91,7 @@ func (m *Mango) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ms := append(m.middles, rt.middlePool...)
 
-	ctx := m.newContext(r, w, params, append(ms, MiddleWrapper(rt.handler)))
+	ctx := m.newContext(r, w, params, append(ms, handleResponse(rt.handler)))
 	ctx.Next()
 	ctx.W.flush()
 }

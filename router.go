@@ -9,7 +9,7 @@ import (
 var re = regexp.MustCompile("\\{([\\w\\d]+)\\}")
 
 //HandlerFunc use to handle incoming requests.
-type HandlerFunc func(*Context)
+type HandlerFunc func(*Context) (int, interface{})
 
 //route point to a URL path
 type route struct {

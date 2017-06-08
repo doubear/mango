@@ -19,22 +19,26 @@ import (
 
 //StaticOption configuration of Static middleware.
 type StaticOption struct {
-	Root   http.FileSystem
-	Prefix string
+	Path string
+	Root http.FileSystem
 }
 
 //Static serve static assets
 func Static(opt StaticOption) MiddleFunc {
 
-	if opt.Prefix == "" {
-		opt.Prefix = "/"
-		logger.NewLogger().Warn("StaticOption auto resets Prefix to /")
+	if opt.Path == "" {
+		opt.Path = "/"
+		logger.NewLogger().Warn("StaticOption auto resets Path to /")
+	}
+
+	if len(opt.Path) > 1 && opt.Path[0] != '/' {
+		opt.Path = "/" + opt.Path
 	}
 
 	return func(ctx *Context) {
 		fpath := ctx.R.URL.Path
-		if strings.HasPrefix(fpath, opt.Prefix) {
-			fpath = fpath[len(opt.Prefix):]
+		if strings.HasPrefix(fpath, opt.Path) {
+			fpath = fpath[len(opt.Path):]
 			if !strings.HasPrefix(fpath, "/") {
 				fpath = "/" + fpath
 			}

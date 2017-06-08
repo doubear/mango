@@ -6,11 +6,6 @@ import (
 	"time"
 )
 
-//MiddleWrapper wrap the given fn to middleware
-func MiddleWrapper(fn func(*Context)) MiddleFunc {
-	return fn
-}
-
 //Record log incoming requests to console.
 func Record() MiddleFunc {
 	return func(ctx *Context) {
