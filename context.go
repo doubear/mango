@@ -13,8 +13,6 @@ import (
 	"github.com/go-mango/mango/logger"
 )
 
-const proxymark = "X-Forwarded-For"
-
 //MiddleFunc used as a middleware
 type MiddleFunc func(*Context)
 
@@ -55,9 +53,9 @@ func (ctx *Context) Set(name string, value interface{}) {
 func (ctx *Context) ClientIP() string {
 	ip := ctx.R.RemoteAddr
 
-	if ctx.R.Header.Get(proxymark) != "" {
+	if ctx.R.Header.Get("X-Forwarded-For") != "" {
 		//using proxy server
-		proxy := strings.Split(ctx.R.Header.Get(proxymark), ",")[0]
+		proxy := strings.Split(ctx.R.Header.Get("X-Forwarded-For"), ",")[0]
 		proxy = strings.TrimSpace(proxy)
 		proxyIP := net.ParseIP(proxy)
 		if false == proxyIP.IsGlobalUnicast() {
@@ -123,41 +121,20 @@ func (ctx *Context) JSON(v interface{}) error {
 	return json.Unmarshal(data, v)
 }
 
-// //JSON auto-encode given value to json then write it to response.
-// func (ctx *Context) JSON(code int, v interface{}) {
-// 	ctx.W.SetStatus(code)
-// 	e := json.NewEncoder(ctx.W)
-// 	e.Encode(v)
-// }
+//IsTLS returns request is over HTTPS or not.
+func (ctx *Context) IsTLS() bool {
+	return ctx.R.TLS != nil
+}
 
-// //Blob writes given bytes to response.
-// func (ctx *Context) Blob(code int, b []byte) {
-// 	ctx.W.SetStatus(code)
-// 	ctx.W.Write(b)
-// }
+//URL generates URL with given params.
+func (ctx *Context) URL(u string, p map[string]string) string {
+	for _, k := range p {
+		u = strings.Replace(u, "{"+k+"}", p[k], -1)
+	}
 
-// //Text writes given string to response.
-// func (ctx *Context) Text(code int, s string) {
-// 	ctx.W.SetStatus(code)
-// 	ctx.W.WriteString(s)
-// }
+	if !strings.HasPrefix(u, "http://") && !strings.HasPrefix(u, "https://") {
+		u = "http://" + u
+	}
 
-// //File serves file from given path.
-// func (ctx *Context) File(path string) {
-// 	file, err := os.Open(path)
-// 	if err != nil {
-// 		if os.IsNotExist(err) {
-// 			ctx.W.SetStatus(http.StatusNotFound)
-// 			ctx.W.Clear()
-// 			return
-// 		}
-
-// 		ctx.W.SetStatus(http.StatusInternalServerError)
-// 		ctx.W.Clear()
-// 		return
-// 	}
-
-// 	defer file.Close()
-
-// 	io.Copy(ctx.W, file)
-// }
+	return u
+}

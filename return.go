@@ -24,7 +24,7 @@ func handleResponse(fn HandlerFunc) MiddleFunc {
 		if code == http.StatusPermanentRedirect || code == http.StatusTemporaryRedirect {
 			if target, ok := value.(string); ok {
 				if target != "" {
-					ctx.W.Header().Add("Location", target)
+					ctx.W.Redirect(code, target)
 				}
 			} else {
 				panic("calling redirects with an invalid URL target.")
@@ -60,13 +60,7 @@ func handleResponse(fn HandlerFunc) MiddleFunc {
 			return
 		}
 
-		switch t.Kind() {
-		case reflect.Array, reflect.Slice, reflect.Struct:
-			handleJsonable(ctx, value)
-		case reflect.String:
-			data := value.(string)
-			ctx.W.WriteString(data)
-		}
+		handleJsonable(ctx, value)
 	}
 }
 

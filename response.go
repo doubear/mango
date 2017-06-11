@@ -127,3 +127,8 @@ func (w *response) DelCookie(name string) {
 		MaxAge: -1,
 	})
 }
+
+func (w *response) Redirect(i int, to string) {
+	w.SetStatus(i)
+	w.Header().Set("Location", to)
+}
