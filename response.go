@@ -44,7 +44,7 @@ func (w *response) Header() http.Header {
 
 //Clear clear buffered data.
 func (w *response) Clear() {
-	w.io.Reset()
+	w.io = &bytes.Buffer{}
 }
 
 //Size returns total size of response body.
@@ -128,7 +128,13 @@ func (w *response) DelCookie(name string) {
 	})
 }
 
+//Redirect recirects to given URL.
 func (w *response) Redirect(i int, to string) {
 	w.SetStatus(i)
 	w.Header().Set("Location", to)
+}
+
+//Buffer returns buffered response data.
+func (w *response) Buffer() []byte {
+	return w.io.Bytes()
 }

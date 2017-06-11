@@ -12,7 +12,7 @@ func Record() MiddleFunc {
 		dur := NumericTimeSmartFormat(time.Since(st).Nanoseconds())
 
 		ctx.Logger.Infof(
-			"%s %s %s %d %dbytes %s",
+			"%s %s %s %d %dB %s",
 			ctx.ClientIP(),
 			ctx.R.Method,
 			ctx.R.RequestURI,

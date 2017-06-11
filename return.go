@@ -33,6 +33,8 @@ func handleResponse(fn HandlerFunc) MiddleFunc {
 			return
 		}
 
+		defer ctx.W.Header().Set("Content-Type", http.DetectContentType(ctx.W.Buffer()))
+
 		if b, ok := value.([]byte); ok {
 			_, err := ctx.W.Write(b)
 			if err != nil {
