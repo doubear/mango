@@ -47,7 +47,8 @@ func Static(opt StaticOption) MiddleFunc {
 
 			file, err := opt.Root.Open(fpath)
 			if err != nil {
-				ctx.W.SetStatus(resolve(err))
+				// ctx.W.SetStatus(resolve(err))
+				ctx.Next()
 				return
 			}
 
@@ -55,12 +56,14 @@ func Static(opt StaticOption) MiddleFunc {
 
 			stat, err := file.Stat()
 			if err != nil {
-				ctx.W.SetStatus(resolve(err))
+				// ctx.W.SetStatus(resolve(err))
+				ctx.Next()
 				return
 			}
 
 			if stat.IsDir() {
-				ctx.W.SetStatus(http.StatusForbidden)
+				// ctx.W.SetStatus(http.StatusForbidden)
+				ctx.Next()
 				return
 			}
 

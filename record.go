@@ -9,7 +9,7 @@ func Record() MiddleFunc {
 	return func(ctx *Context) {
 		st := time.Now()
 		ctx.Next()
-		dur := NumericTimeSmartFormat(time.Since(st).Nanoseconds())
+		dur := time.Since(st).String()
 
 		ctx.Logger.Infof(
 			"%s %s %s %d %dB %s",

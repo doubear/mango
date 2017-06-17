@@ -10,6 +10,8 @@ import (
 
 	"encoding/json"
 
+	"mime/multipart"
+
 	"github.com/go-mango/mango/logger"
 )
 
@@ -69,18 +71,18 @@ func (ctx *Context) ClientIP() string {
 }
 
 //File receives file from MULTI-PART FORM.
-func (ctx *Context) File(field string, saveTo io.Writer) (string, bool) {
+func (ctx *Context) File(field string, saveTo io.Writer) (*multipart.FileHeader, bool) {
 	f, h, err := ctx.R.FormFile(field)
 	if err != nil {
-		return "", false
+		return nil, false
 	}
 
 	_, err = io.Copy(saveTo, f)
 	if err != nil {
-		return "", false
+		return nil, false
 	}
 
-	return h.Filename, true
+	return h, true
 }
 
 //Form retrieves value from POST form.

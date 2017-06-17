@@ -2,7 +2,7 @@ package mango
 
 import "net/http"
 
-//Cors addtional CORS middleware
+//Cors additional CORS middleware
 func Cors() MiddleFunc {
 	return func(ctx *Context) {
 		if ctx.R.Method == "OPTIONS" {

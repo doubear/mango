@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"os"
 	"reflect"
 )
 
@@ -33,36 +34,38 @@ func handleResponse(fn HandlerFunc) MiddleFunc {
 			return
 		}
 
-		defer ctx.W.Header().Set("Content-Type", http.DetectContentType(ctx.W.Buffer()))
+		switch value.(type) {
+		case []byte:
+			_, err := ctx.W.Write(value.([]byte))
+			if err != nil {
+				handleError(ctx, err)
+			}
+		case string:
+			_, err := ctx.W.WriteString(value.(string))
+			if err != nil {
+				handleError(ctx, err)
+			}
+		case *os.File:
+			file := value.(*os.File)
 
-		if b, ok := value.([]byte); ok {
-			_, err := ctx.W.Write(b)
+			defer file.Close()
+
+			_, err := io.Copy(ctx.W, file)
 			if err != nil {
 				handleError(ctx, err)
 			}
 
-			return
-		}
-
-		if b, ok := value.(string); ok {
-			_, err := ctx.W.WriteString(b)
+			ctx.W.Header().Set("Content-Disposition", "attachment; filename=\""+file.Name()+"\"")
+		case io.Reader:
+			_, err := io.Copy(ctx.W, value.(io.Reader))
 			if err != nil {
 				handleError(ctx, err)
 			}
-
-			return
+		default:
+			handleJsonable(ctx, value)
 		}
 
-		if b, ok := value.(io.Reader); ok {
-			_, err := io.Copy(ctx.W, b)
-			if err != nil {
-				handleError(ctx, err)
-			}
-
-			return
-		}
-
-		handleJsonable(ctx, value)
+		ctx.W.Header().Set("Content-Type", http.DetectContentType(ctx.W.Buffer()))
 	}
 }
 

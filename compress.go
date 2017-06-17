@@ -19,9 +19,14 @@ func Compress() MiddleFunc {
 			data := ctx.W.Buffer()
 			ctx.W.Clear()
 
-			w := gzip.NewWriter(ctx.W)
+			w, err := gzip.NewWriterLevel(ctx.W, 6)
+			if err != nil {
+				ctx.W.Clear()
+				ctx.W.Write(data)
+				return
+			}
 
-			_, err := w.Write(data)
+			_, err = w.Write(data)
 			w.Close()
 			if err != nil {
 				ctx.W.Clear()
