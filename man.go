@@ -184,7 +184,7 @@ func New() *Mango {
 
 	m.middles = make([]MiddleFunc, 0)
 
-	m.Logger = logger.NewLogger()
+	m.Logger = mlog
 
 	return m
 }

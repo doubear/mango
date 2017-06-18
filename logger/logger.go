@@ -191,11 +191,13 @@ func (log *Logger) Warnf(s string, a ...interface{}) {
 //Fatal writes a fatal level log.
 func (log *Logger) Fatal(s string) {
 	log.print(LogFatal, s)
+	os.Exit(0)
 }
 
 //Fatalf format s with a.
 func (log *Logger) Fatalf(s string, a ...interface{}) {
 	log.printf(LogFatal, s, a...)
+	os.Exit(0)
 }
 
 //NewLogger create logger instance.
