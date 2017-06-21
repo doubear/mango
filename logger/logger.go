@@ -128,8 +128,8 @@ func (log *Logger) dateFormat() string {
 	return strings.TrimSpace(datetime)
 }
 
-//newMessage create new log message.
-func (log *Logger) newMessage(l int, s string) {
+//createMessage create new log message.
+func (log *Logger) createMessage(l int, s string) {
 	log.mu.Lock()
 	defer log.mu.Unlock()
 
@@ -146,57 +146,30 @@ func (log *Logger) newMessage(l int, s string) {
 	m.consume()
 }
 
-func (log *Logger) print(l int, s string) {
+func (log *Logger) print(l int, s string, a ...interface{}) {
 	if l >= log.logable {
-		log.newMessage(l, s)
+		log.createMessage(l, fmt.Sprintf(s, a...))
 	}
 }
 
-func (log *Logger) printf(l int, s string, a ...interface{}) {
-	if l >= log.logable {
-		log.newMessage(l, fmt.Sprintf(s, a...))
-	}
+//Debug format s with a.
+func (log *Logger) Debug(s string, a ...interface{}) {
+	log.print(LogDebug, s, a...)
 }
 
-//Debug writes a debug level log.
-func (log *Logger) Debug(s string) {
-	log.print(LogDebug, s)
+//Info format s with a.
+func (log *Logger) Info(s string, a ...interface{}) {
+	log.print(LogInfo, s, a...)
 }
 
-//Debugf format s with a.
-func (log *Logger) Debugf(s string, a ...interface{}) {
-	log.printf(LogDebug, s, a...)
+//Warn format s with a.
+func (log *Logger) Warn(s string, a ...interface{}) {
+	log.print(LogWarn, s, a...)
 }
 
-//Info writes a info level log.
-func (log *Logger) Info(s string) {
-	log.print(LogInfo, s)
-}
-
-//Infof format s with a.
-func (log *Logger) Infof(s string, a ...interface{}) {
-	log.printf(LogInfo, s, a...)
-}
-
-//Warn writes a warn level log.
-func (log *Logger) Warn(s string) {
-	log.print(LogWarn, s)
-}
-
-//Warnf format s with a.
-func (log *Logger) Warnf(s string, a ...interface{}) {
-	log.printf(LogWarn, s, a...)
-}
-
-//Fatal writes a fatal level log.
-func (log *Logger) Fatal(s string) {
-	log.print(LogFatal, s)
-	os.Exit(0)
-}
-
-//Fatalf format s with a.
-func (log *Logger) Fatalf(s string, a ...interface{}) {
-	log.printf(LogFatal, s, a...)
+//Fatal format s with a.
+func (log *Logger) Fatal(s string, a ...interface{}) {
+	log.print(LogFatal, s, a...)
 	os.Exit(0)
 }
 

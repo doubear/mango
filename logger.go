@@ -12,44 +12,24 @@ func init() {
 	mlog = logger.NewLogger()
 }
 
-//Debugf log debug message with given format.
-func Debugf(s string, a ...interface{}) {
-	mlog.Debugf(s, a...)
+//Debug log debug message with given format.
+func Debug(s string, a ...interface{}) {
+	mlog.Debug(s, a...)
 }
 
-//Infof log info message with given format.
-func Infof(s string, a ...interface{}) {
-	mlog.Infof(s, a...)
+//Info log info message with given format.
+func Info(s string, a ...interface{}) {
+	mlog.Info(s, a...)
 }
 
-//Warnf log warn message with given format.
-func Warnf(s string, a ...interface{}) {
-	mlog.Warnf(s, a...)
+//Warn log warn message with given format.
+func Warn(s string, a ...interface{}) {
+	mlog.Warn(s, a...)
 }
 
-//Fatalf log fatal message with given format.
-func Fatalf(s string, a ...interface{}) {
-	mlog.Fatalf(s, a...)
-}
-
-//Debug log debug message.
-func Debug(s string) {
-	Debugf(s)
-}
-
-//Info log Info message.
-func Info(s string) {
-	Infof(s)
-}
-
-//Warn log Warn message.
-func Warn(s string) {
-	Warnf(s)
-}
-
-//Fatal log Fatal message.
-func Fatal(s string) {
-	Fatalf(s)
+//Fatal log fatal message with given format.
+func Fatal(s string, a ...interface{}) {
+	mlog.Fatal(s, a...)
 }
 
 //SetLevel set logger level.
