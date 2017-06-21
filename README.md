@@ -5,10 +5,10 @@
 ## Quick Start
 
 ```go
-func index(ctx *mango.Context) {
-	ctx.JSON(200, map[string]interface{}{
+func index(ctx *mango.Context) (int, interface{}) {
+	return 200, map[string]interface{}{
 		"message": "hello mango",
-	})
+	}
 }
 
 func main() {
@@ -88,7 +88,10 @@ m.Group("/api", func(api *mango.GroupRouter){
 1. Record
 2. Recovery
 3. Cors
-4. ...
+4. Static
+5. Redirect
+6. Compress
+7. ...
 
 ## Serve Mode
 
@@ -108,6 +111,13 @@ m.StartTLS(":8080", "cert file content", "key file content")
 
 ```go
 m.StartAutoTLS(":8080", "example.org")
+```
+
+### Handle HTTP and HTTPS
+
+```go
+go m.Start(":http")
+m.StartAutoTLS(":https", "example.org")
 ```
 
 ## Benchmark
