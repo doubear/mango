@@ -83,7 +83,7 @@ m.Group("/api", func(api *mango.GroupRouter){
 }, myMiddleware())
 ```
 
-## Internals Middleware
+## Built-in Middlewares
 
 1. Record
 2. Recovery
