@@ -2,6 +2,20 @@
 [![GoDoc](https://godoc.org/github.com/go-mango/mango?status.svg)](https://godoc.org/github.com/go-mango/mango)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-mango/mango)](https://goreportcard.com/report/github.com/go-mango/mango)
 
+## Installation
+
+To get the package, execute:
+
+```shell
+go get gopkg.in/mango.v0
+```
+
+To import this package, add the following line to your code:
+
+```shell
+import "gopkg.in/mango.v0"
+```
+
 ## Quick Start
 
 ```go
@@ -91,7 +105,8 @@ m.Group("/api", func(api *mango.GroupRouter){
 4. Static
 5. Redirect
 6. Compress
-7. ...
+7. Throttle
+8. ...
 
 ## Serve Mode
 
