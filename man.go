@@ -124,7 +124,7 @@ func (m *Mango) start(addr string, fn func(*http.Server)) {
 	<-shouldStop
 	m.Logger.Warn("Server is shutting down...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	err := server.Shutdown(ctx)
