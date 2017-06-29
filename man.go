@@ -14,11 +14,15 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 )
 
+//Plugin an plugin for mango.
+type Plugin func(*Mango)
+
 //Mango main struct.
 type Mango struct {
-	router  *router
-	middles []MiddleFunc
-	Logger  *logger.Logger
+	router   *router
+	middles  []MiddleFunc
+	notFound HandlerFunc
+	Logger   *logger.Logger
 }
 
 //NewContext create new Context instance
@@ -42,9 +46,22 @@ func (m *Mango) newResponse(w http.ResponseWriter) *response {
 	}
 }
 
-//Use appends middleware function to built-in stack.
-func (m *Mango) Use(mf MiddleFunc) {
-	m.middles = append(m.middles, mf)
+//Use appends middleware function to built-in stack,
+//or load plugin to framework.
+func (m *Mango) Use(fn interface{}) {
+	switch fn.(type) {
+	case MiddleFunc:
+		m.middles = append(m.middles, fn.(MiddleFunc))
+	case Plugin:
+		fn.(Plugin)(m)
+	default:
+		m.Logger.Fatal("use an invalid value")
+	}
+}
+
+//NotFound set customized not found error handler.
+func (m *Mango) NotFound(fn HandlerFunc) {
+	m.notFound = fn
 }
 
 //Get register a GET route.
@@ -77,12 +94,9 @@ func (m *Mango) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	found, params := m.router.search(r)
 	if found == nil {
 		rt = &route{
-			method: "*",
-			path:   "/",
-			handler: func(ctx *Context) (int, interface{}) {
-				ctx.W.SetStatus(http.StatusNotFound)
-				return 0, nil
-			},
+			method:     "*",
+			path:       "/",
+			handler:    m.notFound,
 			middlePool: make([]MiddleFunc, 0),
 		}
 	} else {
@@ -180,6 +194,11 @@ func New() *Mango {
 	m.router = &router{
 		make(map[string][]*route, 0),
 		make(map[string][]*route, 0),
+	}
+
+	m.notFound = func(ctx *Context) (int, interface{}) {
+		ctx.W.SetStatus(http.StatusNotFound)
+		return 0, nil
 	}
 
 	m.middles = make([]MiddleFunc, 0)
