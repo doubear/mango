@@ -23,6 +23,7 @@ type Mango struct {
 	middles  []MiddleFunc
 	notFound HandlerFunc
 	Logger   *logger.Logger
+	cacher   Cacher
 }
 
 //NewContext create new Context instance
@@ -30,6 +31,7 @@ func (m *Mango) newContext(r *http.Request, w http.ResponseWriter, ps map[string
 	return &Context{
 		r,
 		m.newResponse(w),
+		m.cacher,
 		ps,
 		ms,
 		m.Logger,
@@ -44,6 +46,11 @@ func (m *Mango) newResponse(w http.ResponseWriter) *response {
 		http.StatusOK,
 		m.Logger,
 	}
+}
+
+//SetCacher sets cache provider.
+func (m *Mango) SetCacher(c Cacher) {
+	m.cacher = c
 }
 
 //Use appends middleware function to built-in stack,
@@ -122,7 +129,7 @@ func (m *Mango) Group(path string, fn GroupFunc, middles ...MiddleFunc) {
 
 func (m *Mango) start(addr string, fn func(*http.Server)) {
 	shouldStop := make(chan os.Signal)
-	signal.Notify(shouldStop, os.Interrupt)
+	signal.Notify(shouldStop, os.Interrupt, os.Kill)
 
 	server := &http.Server{
 		Addr:    addr,

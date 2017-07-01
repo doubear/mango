@@ -22,6 +22,7 @@ type MiddleFunc func(*Context)
 type Context struct {
 	R       *http.Request
 	W       *response
+	C       Cacher
 	params  map[string]string
 	middles []MiddleFunc
 	Logger  *logger.Logger
