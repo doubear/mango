@@ -51,7 +51,7 @@ func (rt *router) search(r *http.Request) (*route, map[string]string) {
 func (rt *router) searchStaticPool(r *http.Request) *route {
 	if batch, ok := rt.StaticPool[r.Method]; ok {
 		for _, route := range batch {
-			if route.path == r.RequestURI {
+			if route.path == r.URL.Path {
 				return route
 			}
 		}
@@ -64,7 +64,7 @@ func (rt *router) searchStaticPool(r *http.Request) *route {
 func (rt *router) searchPool(r *http.Request) (*route, map[string]string) {
 	if batch, ok := rt.Pool[r.Method]; ok {
 		for _, route := range batch {
-			if route.pathable.MatchString(r.RequestURI) {
+			if route.pathable.MatchString(r.URL.Path) {
 				params := map[string]string{}
 				names := route.pathable.SubexpNames()[1:]
 				values := route.pathable.FindStringSubmatch(r.RequestURI)[1:]
