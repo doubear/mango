@@ -146,31 +146,46 @@ func (log *Logger) createMessage(l int, s string) {
 	m.consume()
 }
 
-func (log *Logger) print(l int, s string, a ...interface{}) {
+func (log *Logger) print(l int, s interface{}, a ...interface{}) {
 	if l >= log.logable {
-		log.createMessage(l, fmt.Sprintf(s, a...))
+		log.createMessage(l, fmt.Sprintf(formatString(s), a...))
 	}
 }
 
 //Debug format s with a.
-func (log *Logger) Debug(s string, a ...interface{}) {
+func (log *Logger) Debug(s interface{}, a ...interface{}) {
 	log.print(LogDebug, s, a...)
 }
 
 //Info format s with a.
-func (log *Logger) Info(s string, a ...interface{}) {
+func (log *Logger) Info(s interface{}, a ...interface{}) {
 	log.print(LogInfo, s, a...)
 }
 
 //Warn format s with a.
-func (log *Logger) Warn(s string, a ...interface{}) {
+func (log *Logger) Warn(s interface{}, a ...interface{}) {
 	log.print(LogWarn, s, a...)
 }
 
 //Fatal format s with a.
-func (log *Logger) Fatal(s string, a ...interface{}) {
+func (log *Logger) Fatal(s interface{}, a ...interface{}) {
 	log.print(LogFatal, s, a...)
 	os.Exit(0)
+}
+
+func formatString(s interface{}) string {
+	f := "%v"
+
+	switch s.(type) {
+	case error:
+		f = s.(error).Error()
+	case fmt.Stringer:
+		f = s.(fmt.Stringer).String()
+	case string:
+		f = s.(string)
+	}
+
+	return f
 }
 
 //NewLogger create logger instance.
