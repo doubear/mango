@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -148,7 +150,11 @@ func (log *Logger) createMessage(l int, s string) {
 
 func (log *Logger) print(l int, s interface{}, a ...interface{}) {
 	if l >= log.logable {
-		log.createMessage(l, fmt.Sprintf(formatString(s), a...))
+		_, file, line, _ := runtime.Caller(2)
+
+		f := fmt.Sprintf("%s:%d %s", chopPath(file), line, formatString(s))
+
+		log.createMessage(l, fmt.Sprintf(f, a...))
 	}
 }
 
@@ -184,6 +190,12 @@ func formatString(s interface{}) string {
 	case string:
 		f = s.(string)
 	}
+
+	return f
+}
+
+func chopPath(s string) string {
+	_, f := path.Split(s)
 
 	return f
 }
