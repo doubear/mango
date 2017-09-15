@@ -1,126 +1,109 @@
 package mango
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
-	"net"
 	"net/http"
-
-	"github.com/go-mango/logy"
 )
 
-//Response customized response struct.
+//Response represents the data that is server sent to client.
+type Response interface {
+	Writer() http.ResponseWriter
+	Write([]byte) (int, error)
+	WriteString(string) (int, error)
+	WriteJSON(interface{}) error
+	Header() http.Header
+	Clear()
+	Size() int
+	Status() int
+	SetStatus(int)
+	SetCookie(*http.Cookie)
+	DelCookie(string)
+	Redirect(i int, to string)
+	Buffered() []byte
+	Send() error
+}
+
 type response struct {
 	w      http.ResponseWriter
 	io     *bytes.Buffer
 	status int
 }
 
+func newResponse(w http.ResponseWriter) *response {
+	return &response{
+		w,
+		&bytes.Buffer{},
+		http.StatusOK,
+	}
+}
+
+//Writer returns original http.ResponseWriter
+func (r *response) Writer() http.ResponseWriter {
+	return r.w
+}
+
 //Write response data to buffer.
-func (w *response) Write(b []byte) (int, error) {
-	return w.io.Write(b)
+func (r *response) Write(b []byte) (int, error) {
+	return r.io.Write(b)
 }
 
 //WriteString writes string to response body.
-func (w *response) WriteString(s string) (int, error) {
-	return w.Write([]byte(s))
+func (r *response) WriteString(s string) (int, error) {
+	return r.Write([]byte(s))
 }
 
-func (w *response) WriteJSON(v interface{}) {
-	en := json.NewEncoder(w)
-	err := en.Encode(v)
-
-	if err != nil {
-		logy.E(err.Error())
-	}
+func (r *response) WriteJSON(v interface{}) error {
+	return json.NewEncoder(r).Encode(v)
 }
 
 //Header returns http.Header.
-func (w *response) Header() http.Header {
-	return w.w.Header()
+func (r *response) Header() http.Header {
+	return r.w.Header()
 }
 
 //Clear clear buffered data.
-func (w *response) Clear() {
-	w.io = &bytes.Buffer{}
+func (r *response) Clear() {
+	r.io = &bytes.Buffer{}
 }
 
 //Size returns total size of response body.
-func (w *response) Size() int {
-	return w.io.Len()
+func (r *response) Size() int {
+	return r.io.Len()
 }
 
 //Status returns status code.
-func (w *response) Status() int {
-	return w.status
+func (r *response) Status() int {
+	return r.status
 }
 
 //SetStatus reset status of response.
-func (w *response) SetStatus(c int) {
-	w.status = c
+func (r *response) SetStatus(c int) {
+	r.status = c
 }
 
-//Flush all buffered data to client.
-func (w *response) flush() {
-	w.w.WriteHeader(w.status)
-	_, e := w.w.Write(w.io.Bytes())
+//Send sends all buffered data to client.
+func (r *response) Send() error {
+	r.w.WriteHeader(r.status)
+	_, e := r.w.Write(r.io.Bytes())
 
 	if e != nil {
-		panic(e.Error())
+		return e
 	}
 
-	w.Clear()
-}
+	r.Clear()
 
-//Pusher returns http.Pusher.
-func (w *response) Pusher() (http.Pusher, bool) {
-	p, ok := w.w.(http.Pusher)
-
-	return p, ok
-}
-
-//Push handles http.Pusher within a closure.
-func (w *response) Push(fn func(http.Pusher)) bool {
-	p, ok := w.Pusher()
-
-	if ok {
-		fn(p)
-	}
-
-	return ok
-}
-
-//Hijacker returns http.Hijacker.
-func (w *response) Hijacker() (http.Hijacker, bool) {
-	h, ok := w.w.(http.Hijacker)
-
-	return h, ok
-}
-
-//Hijack handles http.Hijacker within a closure.
-func (w *response) Hijack(fn func(net.Conn, *bufio.ReadWriter)) bool {
-	h, ok := w.Hijacker()
-
-	if ok {
-		conn, io, err := h.Hijack()
-
-		if err == nil {
-			fn(conn, io)
-		}
-	}
-
-	return ok
+	return nil
 }
 
 //SetCookie add a cookie to response header.
-func (w *response) SetCookie(c *http.Cookie) {
-	http.SetCookie(w.w, c)
+func (r *response) SetCookie(c *http.Cookie) {
+	http.SetCookie(r.w, c)
 }
 
 //DelCookie delete specified cookie.
-func (w *response) DelCookie(name string) {
-	http.SetCookie(w.w, &http.Cookie{
+func (r *response) DelCookie(name string) {
+	http.SetCookie(r.w, &http.Cookie{
 		Name:   name,
 		Value:  "",
 		MaxAge: -1,
@@ -128,12 +111,12 @@ func (w *response) DelCookie(name string) {
 }
 
 //Redirect recirects to given URL.
-func (w *response) Redirect(i int, to string) {
-	w.SetStatus(i)
-	w.Header().Set("Location", to)
+func (r *response) Redirect(i int, to string) {
+	r.SetStatus(i)
+	r.Header().Set("Location", to)
 }
 
-//Buffer returns buffered response data.
-func (w *response) Buffer() []byte {
-	return w.io.Bytes()
+//Buffered returns buffered response data.
+func (r *response) Buffered() []byte {
+	return r.io.Bytes()
 }

@@ -9,7 +9,7 @@ import (
 
 //Recovery record every panic.
 func Recovery() MiddleFunc {
-	return func(ctx *Context) {
+	return func(ctx Context) {
 		defer func() {
 			if v := recover(); v != nil {
 				var err error
@@ -22,7 +22,7 @@ func Recovery() MiddleFunc {
 
 				logy.W(err.Error())
 
-				ctx.W.SetStatus(http.StatusInternalServerError)
+				ctx.Response().SetStatus(http.StatusInternalServerError)
 			}
 		}()
 

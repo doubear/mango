@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	defaultErrorHandler = func(e error, ctx *mango.Context) {
+	defaultErrorHandler = func(e error, ctx mango.Context) {
 		ctx.W.Clear()
 		ctx.W.SetStatus(http.StatusUnauthorized)
 	}
@@ -32,11 +32,11 @@ type Engine struct {
 	RefreshTTL time.Duration
 	Algorithm  Crypto
 	header     *header
-	onError    func(error, *mango.Context)
+	onError    func(error, mango.Context)
 }
 
 //Error set unauthorized handler.
-func (e *Engine) Error(fn func(error, *mango.Context)) {
+func (e *Engine) Error(fn func(error, mango.Context)) {
 	e.onError = fn
 }
 
@@ -76,7 +76,7 @@ func (e *Engine) ParseToken(t string) *Token {
 
 //Auth returns jwt authorization middleware of mango.
 func (e *Engine) Auth(audiences ...string) mango.MiddleFunc {
-	return func(ctx *mango.Context) {
+	return func(ctx mango.Context) {
 		defer func() {
 			if rev := recover(); rev != nil {
 				e.onError(rev.(error), ctx)
@@ -105,7 +105,7 @@ func (e *Engine) Auth(audiences ...string) mango.MiddleFunc {
 //New creates new jwt instance.
 //
 /*
-	j := jwt.New(jwt.HS256, "secret key")
+	e := jwt.New(jwt.HS256, "secret key")
 	e.Sign(jwt.Claims{})
 */
 func New(alg Crypto, secret string) *Engine {

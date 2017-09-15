@@ -1,8 +1,7 @@
 package mango
 
 import (
-	"bytes"
-	"context"
+	pcontext "context"
 	"crypto/tls"
 	"net/http"
 	"os"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-mango/logy"
+	"github.com/go-mango/mango/middleware"
 
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -27,22 +27,14 @@ type Mango struct {
 }
 
 //NewContext create new Context instance
-func (m *Mango) newContext(r *http.Request, w http.ResponseWriter, ps map[string]string, ms []MiddleFunc) *Context {
-	return &Context{
-		r,
-		m.newResponse(w),
+func (m *Mango) newContext(r *http.Request, w http.ResponseWriter, ps map[string]string, ms []MiddleFunc) *context {
+	return &context{
+		newRequest(r),
+		newResponse(w),
 		m.cacher,
 		ps,
 		ms,
 		map[string]interface{}{},
-	}
-}
-
-func (m *Mango) newResponse(w http.ResponseWriter) *response {
-	return &response{
-		w,
-		&bytes.Buffer{},
-		http.StatusOK,
 	}
 }
 
@@ -112,7 +104,7 @@ func (m *Mango) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctx := m.newContext(r, w, params, append(ms, handleResponse(rt.handler)))
 	ctx.Next()
-	ctx.W.flush()
+	ctx.Response().Send()
 }
 
 //Group create route group with dedicated prefix path.
@@ -143,7 +135,7 @@ func (m *Mango) start(addr string, fn func(*http.Server)) {
 	<-shouldStop
 	logy.W("Server is shutting down...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := pcontext.WithTimeout(pcontext.Background(), 10*time.Second)
 	defer cancel()
 
 	err := server.Shutdown(ctx)
@@ -202,8 +194,8 @@ func New() *Mango {
 		make(map[string][]*route, 0),
 	}
 
-	m.notFound = func(ctx *Context) (int, interface{}) {
-		ctx.W.SetStatus(http.StatusNotFound)
+	m.notFound = func(ctx Context) (int, interface{}) {
+		ctx.Response().SetStatus(http.StatusNotFound)
 		return 0, nil
 	}
 
@@ -215,7 +207,7 @@ func New() *Mango {
 //Default returns an Mango instance that uses few middlewares.
 func Default() *Mango {
 	m := New()
-	m.Use(Record())
+	m.Use(middleware.Record())
 	m.Use(Recovery())
 	return m
 }

@@ -1,4 +1,4 @@
-package mango
+package middleware
 
 import (
 	"crypto/sha1"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-mango/logy"
+	"github.com/go-mango/mango"
 )
 
 type throttle struct {
@@ -23,7 +24,7 @@ func (t *throttle) reset() {
 
 //Throttle controls how much request frequency
 //from remote client is allowed.
-func Throttle(qps int) MiddleFunc {
+func Throttle(qps int) mango.MiddleFunc {
 
 	if qps < 0 {
 		logy.E("ThrottleOption QPS must larger than 0")
@@ -36,8 +37,8 @@ func Throttle(qps int) MiddleFunc {
 
 	var hashmap = make(map[string]*throttle) //summary & times
 
-	return func(ctx *Context) {
-		label := ctx.ClientIP() + ctx.R.RequestURI
+	return func(ctx mango.Context) {
+		label := ctx.Request().IP() + ctx.Request().URI()
 		barr := sha1.Sum([]byte(label))
 		sum := hex.EncodeToString(barr[:])
 
@@ -48,7 +49,7 @@ func Throttle(qps int) MiddleFunc {
 			if time.Since(t.t) <= 1*time.Second {
 
 				if t.c >= qps {
-					ctx.W.SetStatus(http.StatusTooManyRequests)
+					ctx.Response().SetStatus(http.StatusTooManyRequests)
 					return
 				}
 
