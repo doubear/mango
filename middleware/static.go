@@ -5,6 +5,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/go-mango/logy"
+
 	"os"
 
 	"time"
@@ -15,7 +17,6 @@ import (
 	"io"
 
 	"github.com/go-mango/mango"
-	"github.com/go-mango/mango/logger"
 )
 
 //StaticOption configuration of Static middleware.
@@ -29,7 +30,7 @@ func Static(opt StaticOption) mango.MiddleFunc {
 
 	if opt.Path == "" {
 		opt.Path = "/"
-		logger.NewLogger().Warn("StaticOption auto resets Path to /")
+		logy.W("StaticOption auto resets Path to /")
 	}
 
 	if len(opt.Path) > 1 && opt.Path[0] != '/' {
