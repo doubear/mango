@@ -16,14 +16,14 @@ import (
 	m.Use(mango.BasicAuth(credentials))
 */
 func BasicAuth(credentials map[string]string) MiddleFunc {
-	return func(ctx *Context) {
-		if token := ctx.R.Header.Get("Authorization"); token != "" {
+	return func(ctx Context) {
+		if token := ctx.Request().Header().Get("Authorization"); token != "" {
 			if strings.HasPrefix(token, "Basic ") {
 				token = token[6:]
 
 				raw, err := base64.StdEncoding.DecodeString(token)
 				if err != nil {
-					ctx.W.SetStatus(http.StatusInternalServerError)
+					ctx.Response().SetStatus(http.StatusInternalServerError)
 					return
 				}
 
@@ -38,7 +38,7 @@ func BasicAuth(credentials map[string]string) MiddleFunc {
 			}
 		}
 
-		ctx.W.SetStatus(http.StatusUnauthorized)
-		ctx.W.Header().Set("WWW-Authenticate", "Basic realm=\"Restricted\"")
+		ctx.Response().SetStatus(http.StatusUnauthorized)
+		ctx.Response().Header().Set("WWW-Authenticate", "Basic realm=\"Restricted\"")
 	}
 }

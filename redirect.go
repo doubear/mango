@@ -12,22 +12,22 @@ type RedirectOption struct {
 
 //Redirect recirects  requests.
 func Redirect(opt RedirectOption) MiddleFunc {
-	return func(ctx *Context) {
-		if opt.MustHOST != "" && ctx.R.Host != opt.MustHOST {
-			to := *ctx.R.URL
+	return func(ctx Context) {
+		if opt.MustHOST != "" && ctx.Request().Host() != opt.MustHOST {
+			to := *ctx.Request().URL()
 			to.Scheme = "http"
 			to.Host = opt.MustHOST
 
-			ctx.W.Redirect(http.StatusPermanentRedirect, to.String())
+			ctx.Response().Redirect(http.StatusPermanentRedirect, to.String())
 			return
 		}
 
-		if opt.MustHTTPS && false == ctx.IsTLS() {
-			to := *ctx.R.URL
+		if opt.MustHTTPS && false == ctx.Request().IsTLS() {
+			to := *ctx.Request().URL()
 			to.Scheme = "https"
-			to.Host = ctx.R.Host
+			to.Host = ctx.Request().Host()
 
-			ctx.W.Redirect(http.StatusPermanentRedirect, to.String())
+			ctx.Response().Redirect(http.StatusPermanentRedirect, to.String())
 			return
 		}
 

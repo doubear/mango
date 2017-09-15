@@ -35,8 +35,8 @@ func Static(opt StaticOption) MiddleFunc {
 		opt.Path = "/" + opt.Path
 	}
 
-	return func(ctx *Context) {
-		fpath := ctx.R.URL.Path
+	return func(ctx Context) {
+		fpath := ctx.Request().URL().Path
 		if strings.HasPrefix(fpath, opt.Path) {
 			fpath = fpath[len(opt.Path):]
 			if !strings.HasPrefix(fpath, "/") {
@@ -47,7 +47,7 @@ func Static(opt StaticOption) MiddleFunc {
 
 			file, err := opt.Root.Open(fpath)
 			if err != nil {
-				// ctx.W.SetStatus(resolve(err))
+				// ctx.Response().SetStatus(resolve(err))
 				ctx.Next()
 				return
 			}
@@ -56,34 +56,34 @@ func Static(opt StaticOption) MiddleFunc {
 
 			stat, err := file.Stat()
 			if err != nil {
-				// ctx.W.SetStatus(resolve(err))
+				// ctx.Response().SetStatus(resolve(err))
 				ctx.Next()
 				return
 			}
 
 			if stat.IsDir() {
-				// ctx.W.SetStatus(http.StatusForbidden)
+				// ctx.Response().SetStatus(http.StatusForbidden)
 				ctx.Next()
 				return
 			}
 
 			if !stat.ModTime().IsZero() && !stat.ModTime().Equal(time.Unix(0, 0)) {
-				ctx.W.Header().Add("Last-Modified", stat.ModTime().UTC().Format(http.TimeFormat))
+				ctx.Response().Header().Add("Last-Modified", stat.ModTime().UTC().Format(http.TimeFormat))
 			}
 
-			if _, ok := ctx.W.Header()["Content-Type"]; !ok {
+			if _, ok := ctx.Response().Header()["Content-Type"]; !ok {
 				m := mime.TypeByExtension(filepath.Ext(stat.Name()))
 				if m == "" {
 					m = "application/octet-stream"
 				}
 
-				ctx.W.Header().Add("Content-Type", m)
+				ctx.Response().Header().Add("Content-Type", m)
 			}
 
-			_, err = io.Copy(ctx.W, file)
+			_, err = io.Copy(ctx.Response(), file)
 			if err != nil {
-				ctx.W.Clear()
-				ctx.W.SetStatus(http.StatusInternalServerError)
+				ctx.Response().Clear()
+				ctx.Response().SetStatus(http.StatusInternalServerError)
 			}
 
 			return

@@ -11,13 +11,13 @@ type CorsOption struct {
 
 //Cors additional CORS middleware
 func Cors(opt CorsOption) MiddleFunc {
-	return func(ctx *Context) {
-		ctx.W.Header().Add("Access-Control-Allow-Origin", opt.Origin)
-		ctx.W.Header().Add("Access-Control-Allow-Methods", opt.Methods)
-		ctx.W.Header().Add("Access-Control-Allow-Headers", opt.Headers)
+	return func(ctx Context) {
+		ctx.Response().Header().Add("Access-Control-Allow-Origin", opt.Origin)
+		ctx.Response().Header().Add("Access-Control-Allow-Methods", opt.Methods)
+		ctx.Response().Header().Add("Access-Control-Allow-Headers", opt.Headers)
 
-		if ctx.R.Method == "OPTIONS" {
-			ctx.W.SetStatus(http.StatusOK)
+		if ctx.Request().Method() == "OPTIONS" {
+			ctx.Response().SetStatus(http.StatusOK)
 		} else {
 			ctx.Next()
 		}

@@ -105,7 +105,7 @@ func (e *Engine) Auth(audiences ...string) mango.MiddleFunc {
 //New creates new jwt instance.
 //
 /*
-	j := jwt.New(jwt.HS256, "secret key")
+	e := jwt.New(jwt.HS256, "secret key")
 	e.Sign(jwt.Claims{})
 */
 func New(alg Crypto, secret string) *Engine {

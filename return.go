@@ -11,13 +11,13 @@ import (
 )
 
 func handleResponse(fn HandlerFunc) MiddleFunc {
-	return func(ctx *Context) {
+	return func(ctx Context) {
 		code, value := fn(ctx)
 
 		t := reflect.ValueOf(value)
 
 		if code != 0 {
-			ctx.W.SetStatus(code)
+			ctx.Response().SetStatus(code)
 		}
 
 		if !t.IsValid() {
@@ -27,7 +27,7 @@ func handleResponse(fn HandlerFunc) MiddleFunc {
 		if code == http.StatusPermanentRedirect || code == http.StatusTemporaryRedirect {
 			if target, ok := value.(string); ok {
 				if target != "" {
-					ctx.W.Redirect(code, target)
+					ctx.Response().Redirect(code, target)
 				}
 			} else {
 				panic("calling redirects with an invalid URL target.")
@@ -38,12 +38,12 @@ func handleResponse(fn HandlerFunc) MiddleFunc {
 
 		switch value.(type) {
 		case []byte:
-			_, err := ctx.W.Write(value.([]byte))
+			_, err := ctx.Response().Write(value.([]byte))
 			if err != nil {
 				handleError(ctx, err)
 			}
 		case string:
-			_, err := ctx.W.WriteString(value.(string))
+			_, err := ctx.Response().WriteString(value.(string))
 			if err != nil {
 				handleError(ctx, err)
 			}
@@ -52,14 +52,14 @@ func handleResponse(fn HandlerFunc) MiddleFunc {
 
 			defer file.Close()
 
-			_, err := io.Copy(ctx.W, file)
+			_, err := io.Copy(ctx.Response(), file)
 			if err != nil {
 				handleError(ctx, err)
 			}
 
-			ctx.W.Header().Set("Content-Disposition", "attachment; filename=\""+file.Name()+"\"")
+			ctx.Response().Header().Set("Content-Disposition", "attachment; filename=\""+file.Name()+"\"")
 		case io.Reader:
-			_, err := io.Copy(ctx.W, value.(io.Reader))
+			_, err := io.Copy(ctx.Response(), value.(io.Reader))
 			if err != nil {
 				handleError(ctx, err)
 			}
@@ -67,18 +67,18 @@ func handleResponse(fn HandlerFunc) MiddleFunc {
 			handleJsonable(ctx, value)
 		}
 
-		ctx.W.Header().Set("Content-Type", http.DetectContentType(ctx.W.Buffer()))
+		ctx.Response().Header().Set("Content-Type", http.DetectContentType(ctx.Response().Buffered()))
 	}
 }
 
-func handleError(ctx *Context, err error) {
-	ctx.W.SetStatus(http.StatusInternalServerError)
-	ctx.W.Clear()
+func handleError(ctx Context, err error) {
+	ctx.Response().SetStatus(http.StatusInternalServerError)
+	ctx.Response().Clear()
 	logy.W(err.Error())
 }
 
-func handleJsonable(ctx *Context, v interface{}) {
-	e := json.NewEncoder(ctx.W)
+func handleJsonable(ctx Context, v interface{}) {
+	e := json.NewEncoder(ctx.Response())
 	err := e.Encode(v)
 	if err != nil {
 		handleError(ctx, err)

@@ -36,8 +36,8 @@ func Throttle(qps int) MiddleFunc {
 
 	var hashmap = make(map[string]*throttle) //summary & times
 
-	return func(ctx *Context) {
-		label := ctx.ClientIP() + ctx.R.RequestURI
+	return func(ctx Context) {
+		label := ctx.Request().IP() + ctx.Request().URI()
 		barr := sha1.Sum([]byte(label))
 		sum := hex.EncodeToString(barr[:])
 
@@ -48,7 +48,7 @@ func Throttle(qps int) MiddleFunc {
 			if time.Since(t.t) <= 1*time.Second {
 
 				if t.c >= qps {
-					ctx.W.SetStatus(http.StatusTooManyRequests)
+					ctx.Response().SetStatus(http.StatusTooManyRequests)
 					return
 				}
 
