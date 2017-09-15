@@ -1,7 +1,9 @@
-package mango
+package middleware
 
 import (
 	"net/http"
+
+	"github.com/go-mango/mango"
 )
 
 //RedirectOption configures HTTPS Redirector.
@@ -11,8 +13,8 @@ type RedirectOption struct {
 }
 
 //Redirect recirects  requests.
-func Redirect(opt RedirectOption) MiddleFunc {
-	return func(ctx Context) {
+func Redirect(opt RedirectOption) mango.MiddleFunc {
+	return func(ctx mango.Context) {
 		if opt.MustHOST != "" && ctx.Request().Host() != opt.MustHOST {
 			to := *ctx.Request().URL()
 			to.Scheme = "http"

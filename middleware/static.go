@@ -1,4 +1,4 @@
-package mango
+package middleware
 
 import (
 	"net/http"
@@ -14,6 +14,7 @@ import (
 
 	"io"
 
+	"github.com/go-mango/mango"
 	"github.com/go-mango/mango/logger"
 )
 
@@ -24,7 +25,7 @@ type StaticOption struct {
 }
 
 //Static serve static assets
-func Static(opt StaticOption) MiddleFunc {
+func Static(opt StaticOption) mango.MiddleFunc {
 
 	if opt.Path == "" {
 		opt.Path = "/"
@@ -35,7 +36,7 @@ func Static(opt StaticOption) MiddleFunc {
 		opt.Path = "/" + opt.Path
 	}
 
-	return func(ctx Context) {
+	return func(ctx mango.Context) {
 		fpath := ctx.Request().URL().Path
 		if strings.HasPrefix(fpath, opt.Path) {
 			fpath = fpath[len(opt.Path):]

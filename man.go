@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-mango/logy"
+	"github.com/go-mango/mango/middleware"
 
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -206,7 +207,7 @@ func New() *Mango {
 //Default returns an Mango instance that uses few middlewares.
 func Default() *Mango {
 	m := New()
-	m.Use(Record())
+	m.Use(middleware.Record())
 	m.Use(Recovery())
 	return m
 }

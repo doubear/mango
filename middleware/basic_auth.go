@@ -1,9 +1,11 @@
-package mango
+package middleware
 
 import (
 	"encoding/base64"
 	"net/http"
 	"strings"
+
+	"github.com/go-mango/mango"
 )
 
 //BasicAuth provides basic-auth middleware.
@@ -15,8 +17,8 @@ import (
 
 	m.Use(mango.BasicAuth(credentials))
 */
-func BasicAuth(credentials map[string]string) MiddleFunc {
-	return func(ctx Context) {
+func BasicAuth(credentials map[string]string) mango.MiddleFunc {
+	return func(ctx mango.Context) {
 		if token := ctx.Request().Header().Get("Authorization"); token != "" {
 			if strings.HasPrefix(token, "Basic ") {
 				token = token[6:]

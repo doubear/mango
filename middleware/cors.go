@@ -1,6 +1,10 @@
-package mango
+package middleware
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/go-mango/mango"
+)
 
 //CorsOption configure the cors middleware.
 type CorsOption struct {
@@ -10,8 +14,8 @@ type CorsOption struct {
 }
 
 //Cors additional CORS middleware
-func Cors(opt CorsOption) MiddleFunc {
-	return func(ctx Context) {
+func Cors(opt CorsOption) mango.MiddleFunc {
+	return func(ctx mango.Context) {
 		ctx.Response().Header().Add("Access-Control-Allow-Origin", opt.Origin)
 		ctx.Response().Header().Add("Access-Control-Allow-Methods", opt.Methods)
 		ctx.Response().Header().Add("Access-Control-Allow-Headers", opt.Headers)

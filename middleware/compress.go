@@ -1,13 +1,15 @@
-package mango
+package middleware
 
 import (
 	"compress/gzip"
 	"strings"
+
+	"github.com/go-mango/mango"
 )
 
 //Compress compress response data.
-func Compress() MiddleFunc {
-	return func(ctx Context) {
+func Compress() mango.MiddleFunc {
+	return func(ctx mango.Context) {
 		ctx.Next() //continues to execute middlewares.
 
 		if ctx.Response().Size() == 0 {
