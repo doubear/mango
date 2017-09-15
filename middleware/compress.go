@@ -4,12 +4,12 @@ import (
 	"compress/gzip"
 	"strings"
 
-	"github.com/go-mango/mango"
+	"github.com/go-mango/mango/common"
 )
 
 //Compress compress response data.
-func Compress() mango.MiddleFunc {
-	return func(ctx mango.Context) {
+func Compress() common.MiddleFunc {
+	return func(ctx common.Context) {
 		ctx.Next() //continues to execute middlewares.
 
 		if ctx.Response().Size() == 0 {

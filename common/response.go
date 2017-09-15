@@ -1,4 +1,4 @@
-package mango
+package common
 
 import (
 	"bytes"
@@ -30,7 +30,8 @@ type response struct {
 	status int
 }
 
-func newResponse(w http.ResponseWriter) *response {
+//NewResponse create new response instance.
+func NewResponse(w http.ResponseWriter) Response {
 	return &response{
 		w,
 		&bytes.Buffer{},

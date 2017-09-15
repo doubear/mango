@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/go-mango/logy"
-	"github.com/go-mango/mango"
+	"github.com/go-mango/mango/common"
 )
 
 type throttle struct {
@@ -24,7 +24,7 @@ func (t *throttle) reset() {
 
 //Throttle controls how much request frequency
 //from remote client is allowed.
-func Throttle(qps int) mango.MiddleFunc {
+func Throttle(qps int) common.MiddleFunc {
 
 	if qps < 0 {
 		logy.E("ThrottleOption QPS must larger than 0")
@@ -37,7 +37,7 @@ func Throttle(qps int) mango.MiddleFunc {
 
 	var hashmap = make(map[string]*throttle) //summary & times
 
-	return func(ctx mango.Context) {
+	return func(ctx common.Context) {
 		label := ctx.Request().IP() + ctx.Request().URI()
 		barr := sha1.Sum([]byte(label))
 		sum := hex.EncodeToString(barr[:])

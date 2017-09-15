@@ -4,12 +4,12 @@ import (
 	"time"
 
 	"github.com/go-mango/logy"
-	"github.com/go-mango/mango"
+	"github.com/go-mango/mango/common"
 )
 
 //Record log incoming requests to console.
-func Record() mango.MiddleFunc {
-	return func(ctx mango.Context) {
+func Record() common.MiddleFunc {
+	return func(ctx common.Context) {
 		st := time.Now()
 		ctx.Next()
 		dur := time.Since(st).String()

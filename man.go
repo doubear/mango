@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-mango/logy"
+	"github.com/go-mango/mango/common"
 	"github.com/go-mango/mango/middleware"
 
 	"golang.org/x/crypto/acme/autocert"
@@ -21,16 +22,16 @@ type Plugin func(*Mango)
 //Mango main struct.
 type Mango struct {
 	router   *router
-	middles  []MiddleFunc
-	notFound HandlerFunc
+	middles  []common.MiddleFunc
+	notFound common.HandlerFunc
 	cacher   Cacher
 }
 
 //NewContext create new Context instance
-func (m *Mango) newContext(r *http.Request, w http.ResponseWriter, ps map[string]string, ms []MiddleFunc) *context {
+func (m *Mango) newContext(r *http.Request, w http.ResponseWriter, ps map[string]string, ms []common.MiddleFunc) *context {
 	return &context{
-		newRequest(r),
-		newResponse(w),
+		common.NewRequest(r),
+		common.NewResponse(w),
 		m.cacher,
 		ps,
 		ms,
@@ -47,8 +48,8 @@ func (m *Mango) SetCacher(c Cacher) {
 //or load plugin to framework.
 func (m *Mango) Use(fn interface{}) {
 	switch fn.(type) {
-	case MiddleFunc:
-		m.middles = append(m.middles, fn.(MiddleFunc))
+	case common.MiddleFunc:
+		m.middles = append(m.middles, fn.(common.MiddleFunc))
 	case Plugin:
 		fn.(Plugin)(m)
 	default:
@@ -57,32 +58,32 @@ func (m *Mango) Use(fn interface{}) {
 }
 
 //NotFound set customized not found error handler.
-func (m *Mango) NotFound(fn HandlerFunc) {
+func (m *Mango) NotFound(fn common.HandlerFunc) {
 	m.notFound = fn
 }
 
 //Get register a GET route.
-func (m *Mango) Get(path string, fn HandlerFunc, middles ...MiddleFunc) {
+func (m *Mango) Get(path string, fn common.HandlerFunc, middles ...common.MiddleFunc) {
 	m.router.route([]string{"GET"}, path, fn, middles)
 }
 
 //Post register a POST route.
-func (m *Mango) Post(path string, fn HandlerFunc, middles ...MiddleFunc) {
+func (m *Mango) Post(path string, fn common.HandlerFunc, middles ...common.MiddleFunc) {
 	m.router.route([]string{"POST"}, path, fn, middles)
 }
 
 //Put register a PUT route.
-func (m *Mango) Put(path string, fn HandlerFunc, middles ...MiddleFunc) {
+func (m *Mango) Put(path string, fn common.HandlerFunc, middles ...common.MiddleFunc) {
 	m.router.route([]string{"PUT"}, path, fn, middles)
 }
 
 //Delete register a DELETE route.
-func (m *Mango) Delete(path string, fn HandlerFunc, middles ...MiddleFunc) {
+func (m *Mango) Delete(path string, fn common.HandlerFunc, middles ...common.MiddleFunc) {
 	m.router.route([]string{"DELETE"}, path, fn, middles)
 }
 
 //Any register a route without request type limit.
-func (m *Mango) Any(path string, fn HandlerFunc, middles ...MiddleFunc) {
+func (m *Mango) Any(path string, fn common.HandlerFunc, middles ...common.MiddleFunc) {
 	m.router.route([]string{"GET", "POST", "PUT", "DELETE"}, path, fn, middles)
 }
 
@@ -94,7 +95,7 @@ func (m *Mango) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			method:     "*",
 			path:       "/",
 			handler:    m.notFound,
-			middlePool: make([]MiddleFunc, 0),
+			middlePool: make([]common.MiddleFunc, 0),
 		}
 	} else {
 		rt = found
@@ -108,7 +109,7 @@ func (m *Mango) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 //Group create route group with dedicated prefix path.
-func (m *Mango) Group(path string, fn GroupFunc, middles ...MiddleFunc) {
+func (m *Mango) Group(path string, fn GroupFunc, middles ...common.MiddleFunc) {
 	path = strings.Trim(path, " /")
 	fn(&GroupRouter{
 		[]string{path},
@@ -194,12 +195,12 @@ func New() *Mango {
 		make(map[string][]*route, 0),
 	}
 
-	m.notFound = func(ctx Context) (int, interface{}) {
+	m.notFound = func(ctx common.Context) (int, interface{}) {
 		ctx.Response().SetStatus(http.StatusNotFound)
 		return 0, nil
 	}
 
-	m.middles = make([]MiddleFunc, 0)
+	m.middles = make([]common.MiddleFunc, 0)
 
 	return m
 }

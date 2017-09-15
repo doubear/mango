@@ -1,4 +1,4 @@
-package mango
+package common
 
 import (
 	"net"
@@ -34,7 +34,8 @@ type request struct {
 	params map[string]string
 }
 
-func newRequest(r *http.Request) Request {
+//NewRequest create new request instance.
+func NewRequest(r *http.Request) Request {
 	return &request{
 		r,
 		make(map[string]string),

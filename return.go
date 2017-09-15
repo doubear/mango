@@ -8,10 +8,11 @@ import (
 	"reflect"
 
 	"github.com/go-mango/logy"
+	"github.com/go-mango/mango/common"
 )
 
-func handleResponse(fn HandlerFunc) MiddleFunc {
-	return func(ctx Context) {
+func handleResponse(fn common.HandlerFunc) common.MiddleFunc {
+	return func(ctx common.Context) {
 		code, value := fn(ctx)
 
 		t := reflect.ValueOf(value)
@@ -71,13 +72,13 @@ func handleResponse(fn HandlerFunc) MiddleFunc {
 	}
 }
 
-func handleError(ctx Context, err error) {
+func handleError(ctx common.Context, err error) {
 	ctx.Response().SetStatus(http.StatusInternalServerError)
 	ctx.Response().Clear()
 	logy.W(err.Error())
 }
 
-func handleJsonable(ctx Context, v interface{}) {
+func handleJsonable(ctx common.Context, v interface{}) {
 	e := json.NewEncoder(ctx.Response())
 	err := e.Encode(v)
 	if err != nil {

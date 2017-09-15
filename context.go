@@ -2,48 +2,37 @@ package mango
 
 import (
 	"strings"
+
+	"github.com/go-mango/mango/common"
 )
 
-//MiddleFunc used as a middleware
-type MiddleFunc func(Context)
-
-//Context represents incoming connection.
-type Context interface {
-	Request() Request
-	Response() Response
-	Next()
-	Get(string) interface{}
-	Set(string, interface{})
-	URL(string, map[string]string) string
-}
-
 type context struct {
-	R       Request
-	W       Response
+	R       common.Request
+	W       common.Response
 	C       Cacher
 	params  map[string]string
-	middles []MiddleFunc
+	middles []common.MiddleFunc
 	dict    map[string]interface{}
 }
 
-func newContext(r Request, w Response, c Cacher) Context {
+func newContext(r common.Request, w common.Response, c Cacher) common.Context {
 	return &context{
 		r,
 		w,
 		c,
 		make(map[string]string),
-		make([]MiddleFunc, 0),
+		make([]common.MiddleFunc, 0),
 		make(map[string]interface{}),
 	}
 }
 
 //Request returns wrapped http.Request
-func (c *context) Request() Request {
+func (c *context) Request() common.Request {
 	return c.R
 }
 
 //Response returns wrapped http.ResponseWriter
-func (c *context) Response() Response {
+func (c *context) Response() common.Response {
 	return c.W
 }
 

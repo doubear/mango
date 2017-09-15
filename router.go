@@ -4,20 +4,19 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/go-mango/mango/common"
 )
 
 var re = regexp.MustCompile("\\{([\\w\\d]+)\\}")
-
-//HandlerFunc use to handle incoming requests.
-type HandlerFunc func(Context) (int, interface{})
 
 //route point to a URL path
 type route struct {
 	method     string
 	path       string
 	pathable   *regexp.Regexp
-	handler    HandlerFunc
-	middlePool []MiddleFunc
+	handler    common.HandlerFunc
+	middlePool []common.MiddleFunc
 	isStatic   bool
 }
 
@@ -106,7 +105,7 @@ func (rt *router) compilePath(path string) (*regexp.Regexp, bool) {
 }
 
 //route register an new route to router.
-func (rt *router) route(methods []string, path string, fn HandlerFunc, middlers []MiddleFunc) {
+func (rt *router) route(methods []string, path string, fn common.HandlerFunc, middlers []common.MiddleFunc) {
 	path = strings.Trim(path, " /")
 	path = "/" + path
 
@@ -126,26 +125,26 @@ func (rt *router) route(methods []string, path string, fn HandlerFunc, middlers 
 }
 
 //Get register a GET route.
-func (rt *router) Get(path string, fn HandlerFunc, middlers ...MiddleFunc) {
+func (rt *router) Get(path string, fn common.HandlerFunc, middlers ...common.MiddleFunc) {
 	rt.route([]string{"GET"}, path, fn, middlers)
 }
 
 //Post register a POST route.
-func (rt *router) Post(path string, fn HandlerFunc, middlers ...MiddleFunc) {
+func (rt *router) Post(path string, fn common.HandlerFunc, middlers ...common.MiddleFunc) {
 	rt.route([]string{"POST"}, path, fn, middlers)
 }
 
 //Put register a PUT route.
-func (rt *router) Put(path string, fn HandlerFunc, middlers ...MiddleFunc) {
+func (rt *router) Put(path string, fn common.HandlerFunc, middlers ...common.MiddleFunc) {
 	rt.route([]string{"PUT"}, path, fn, middlers)
 }
 
 //Delete register a DELETE route.
-func (rt *router) Delete(path string, fn HandlerFunc, middlers ...MiddleFunc) {
+func (rt *router) Delete(path string, fn common.HandlerFunc, middlers ...common.MiddleFunc) {
 	rt.route([]string{"DELETE"}, path, fn, middlers)
 }
 
 //Any register a route without request type limit.
-func (rt *router) Any(path string, fn HandlerFunc, middlers ...MiddleFunc) {
+func (rt *router) Any(path string, fn common.HandlerFunc, middlers ...common.MiddleFunc) {
 	rt.route([]string{"GET", "POST", "PUT", "DELETE"}, path, fn, middlers)
 }

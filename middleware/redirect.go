@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/go-mango/mango"
+	"github.com/go-mango/mango/common"
 )
 
 //RedirectOption configures HTTPS Redirector.
@@ -13,8 +13,8 @@ type RedirectOption struct {
 }
 
 //Redirect recirects  requests.
-func Redirect(opt RedirectOption) mango.MiddleFunc {
-	return func(ctx mango.Context) {
+func Redirect(opt RedirectOption) common.MiddleFunc {
+	return func(ctx common.Context) {
 		if opt.MustHOST != "" && ctx.Request().Host() != opt.MustHOST {
 			to := *ctx.Request().URL()
 			to.Scheme = "http"
