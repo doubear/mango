@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+
+	"github.com/go-mango/logy"
 )
 
 func handleResponse(fn HandlerFunc) MiddleFunc {
@@ -72,7 +74,7 @@ func handleResponse(fn HandlerFunc) MiddleFunc {
 func handleError(ctx *Context, err error) {
 	ctx.W.SetStatus(http.StatusInternalServerError)
 	ctx.W.Clear()
-	ctx.Logger.Warn(err.Error())
+	logy.W(err.Error())
 }
 
 func handleJsonable(ctx *Context, v interface{}) {

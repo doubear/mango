@@ -3,6 +3,8 @@ package mango
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/go-mango/logy"
 )
 
 //Recovery record every panic.
@@ -18,7 +20,7 @@ func Recovery() MiddleFunc {
 					err = fmt.Errorf("%v", v)
 				}
 
-				ctx.Logger.Warn(err.Error())
+				logy.W(err.Error())
 
 				ctx.W.SetStatus(http.StatusInternalServerError)
 			}

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/go-mango/logy"
 )
 
 type throttle struct {
@@ -24,12 +26,12 @@ func (t *throttle) reset() {
 func Throttle(qps int) MiddleFunc {
 
 	if qps < 0 {
-		Fatal("ThrottleOption QPS must larger than 0")
+		logy.E("ThrottleOption QPS must larger than 0")
 	}
 
 	if qps == 0 {
 		qps = 15
-		Warn("ThrottleOption uses default rate 15 req/s")
+		logy.W("ThrottleOption uses default rate 15 req/s")
 	}
 
 	var hashmap = make(map[string]*throttle) //summary & times

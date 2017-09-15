@@ -10,7 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-mango/mango/logger"
+	"github.com/go-mango/logy"
+
 	"golang.org/x/crypto/acme/autocert"
 )
 
@@ -22,7 +23,6 @@ type Mango struct {
 	router   *router
 	middles  []MiddleFunc
 	notFound HandlerFunc
-	Logger   *logger.Logger
 	cacher   Cacher
 }
 
@@ -34,7 +34,6 @@ func (m *Mango) newContext(r *http.Request, w http.ResponseWriter, ps map[string
 		m.cacher,
 		ps,
 		ms,
-		m.Logger,
 		map[string]interface{}{},
 	}
 }
@@ -44,7 +43,6 @@ func (m *Mango) newResponse(w http.ResponseWriter) *response {
 		w,
 		&bytes.Buffer{},
 		http.StatusOK,
-		m.Logger,
 	}
 }
 
@@ -62,7 +60,7 @@ func (m *Mango) Use(fn interface{}) {
 	case Plugin:
 		fn.(Plugin)(m)
 	default:
-		m.Logger.Fatal("use an invalid value")
+		logy.E("use an invalid value")
 	}
 }
 
@@ -140,20 +138,20 @@ func (m *Mango) start(addr string, fn func(*http.Server)) {
 		fn(server)
 	}()
 
-	m.Logger.Info("Server is running on " + addr)
+	logy.I("Server is running on " + addr)
 
 	<-shouldStop
-	m.Logger.Warn("Server is shutting down...")
+	logy.W("Server is shutting down...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	err := server.Shutdown(ctx)
 	if err != nil {
-		m.Logger.Warn(err.Error())
+		logy.W(err.Error())
 	}
 
-	m.Logger.Info("Server stopped gracefully.")
+	logy.I("Server stopped gracefully.")
 }
 
 //Start starts a standard http server.
@@ -161,7 +159,7 @@ func (m *Mango) Start(addr string) {
 	m.start(addr, func(s *http.Server) {
 		err := s.ListenAndServe()
 		if err != nil {
-			m.Logger.Warn(err.Error())
+			logy.W(err.Error())
 		}
 	})
 }
@@ -171,25 +169,26 @@ func (m *Mango) StartTLS(addr, certFile, keyFile string) {
 	m.start(addr, func(s *http.Server) {
 		err := s.ListenAndServeTLS(certFile, keyFile)
 		if err != nil {
-			m.Logger.Warn(err.Error())
+			logy.W(err.Error())
 		}
 	})
 }
 
 //StartAutoTLS starts a TLS server with auto-generated SSL certificate.
 //certificates are signed by let's encrypt.
-func (m *Mango) StartAutoTLS(addr string, domains ...string) {
+func (m *Mango) StartAutoTLS(addr string, caStore autocert.Cache, domains ...string) {
 	m.start(addr, func(s *http.Server) {
 		c := autocert.Manager{
 			Prompt:     autocert.AcceptTOS,
 			HostPolicy: autocert.HostWhitelist(domains...),
+			Cache:      caStore,
 		}
 
 		s.TLSConfig = &tls.Config{GetCertificate: c.GetCertificate}
 
 		err := s.ListenAndServeTLS("", "")
 		if err != nil {
-			m.Logger.Warn(err.Error())
+			logy.W(err.Error())
 		}
 	})
 }
@@ -209,8 +208,6 @@ func New() *Mango {
 	}
 
 	m.middles = make([]MiddleFunc, 0)
-
-	m.Logger = mlog
 
 	return m
 }

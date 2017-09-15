@@ -2,6 +2,8 @@ package mango
 
 import (
 	"time"
+
+	"github.com/go-mango/logy"
 )
 
 //Record log incoming requests to console.
@@ -11,7 +13,7 @@ func Record() MiddleFunc {
 		ctx.Next()
 		dur := time.Since(st).String()
 
-		ctx.Logger.Info(
+		logy.I(
 			"%s %s %s %d %dB %s",
 			ctx.ClientIP(),
 			ctx.R.Method,

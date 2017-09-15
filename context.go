@@ -11,8 +11,6 @@ import (
 	"encoding/json"
 
 	"mime/multipart"
-
-	"github.com/go-mango/mango/logger"
 )
 
 //MiddleFunc used as a middleware
@@ -25,7 +23,6 @@ type Context struct {
 	C       Cacher
 	params  map[string]string
 	middles []MiddleFunc
-	Logger  *logger.Logger
 	dict    map[string]interface{}
 }
 

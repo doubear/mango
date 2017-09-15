@@ -7,7 +7,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/go-mango/mango/logger"
+	"github.com/go-mango/logy"
 )
 
 //Response customized response struct.
@@ -15,7 +15,6 @@ type response struct {
 	w      http.ResponseWriter
 	io     *bytes.Buffer
 	status int
-	logger *logger.Logger
 }
 
 //Write response data to buffer.
@@ -33,7 +32,7 @@ func (w *response) WriteJSON(v interface{}) {
 	err := en.Encode(v)
 
 	if err != nil {
-		w.logger.Fatal(err.Error())
+		logy.E(err.Error())
 	}
 }
 
