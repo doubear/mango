@@ -35,10 +35,10 @@ type request struct {
 }
 
 //NewRequest create new request instance.
-func NewRequest(r *http.Request) Request {
+func NewRequest(r *http.Request, ps map[string]string) Request {
 	return &request{
 		r,
-		make(map[string]string),
+		ps,
 	}
 }
 

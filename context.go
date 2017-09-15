@@ -10,7 +10,6 @@ type context struct {
 	R       common.Request
 	W       common.Response
 	C       Cacher
-	params  map[string]string
 	middles []common.MiddleFunc
 	dict    map[string]interface{}
 }
@@ -20,7 +19,6 @@ func newContext(r common.Request, w common.Response, c Cacher) common.Context {
 		r,
 		w,
 		c,
-		make(map[string]string),
 		make([]common.MiddleFunc, 0),
 		make(map[string]interface{}),
 	}

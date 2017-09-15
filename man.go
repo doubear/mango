@@ -30,10 +30,9 @@ type Mango struct {
 //NewContext create new Context instance
 func (m *Mango) newContext(r *http.Request, w http.ResponseWriter, ps map[string]string, ms []common.MiddleFunc) *context {
 	return &context{
-		common.NewRequest(r),
+		common.NewRequest(r, ps),
 		common.NewResponse(w),
 		m.cacher,
-		ps,
 		ms,
 		map[string]interface{}{},
 	}
@@ -88,22 +87,19 @@ func (m *Mango) Any(path string, fn common.HandlerFunc, middles ...common.Middle
 }
 
 func (m *Mango) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var rt *route
 	found, params := m.router.search(r)
 	if found == nil {
-		rt = &route{
+		found = &route{
 			method:     "*",
 			path:       "/",
 			handler:    m.notFound,
 			middlePool: make([]common.MiddleFunc, 0),
 		}
-	} else {
-		rt = found
 	}
 
-	ms := append(m.middles, rt.middlePool...)
+	ms := append(m.middles, found.middlePool...)
 
-	ctx := m.newContext(r, w, params, append(ms, handleResponse(rt.handler)))
+	ctx := m.newContext(r, w, params, append(ms, handleResponse(found.handler)))
 	ctx.Next()
 	ctx.Response().Send()
 }
