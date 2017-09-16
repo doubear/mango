@@ -167,7 +167,7 @@ func (m *Mango) Start(addr string) {
 	m.start(addr, func(s *http.Server) {
 		err := s.ListenAndServe()
 		if err != nil {
-			logy.W(err.Error())
+			logy.E(err.Error())
 		}
 	})
 }
@@ -177,7 +177,7 @@ func (m *Mango) StartTLS(addr, certFile, keyFile string) {
 	m.start(addr, func(s *http.Server) {
 		err := s.ListenAndServeTLS(certFile, keyFile)
 		if err != nil {
-			logy.W(err.Error())
+			logy.E(err.Error())
 		}
 	})
 }
@@ -202,7 +202,7 @@ func (m *Mango) StartAutoTLS(addr string, caStore autocert.Cache, domains ...str
 
 		err := s.ListenAndServeTLS("", "")
 		if err != nil {
-			logy.W(err.Error())
+			logy.E(err.Error())
 		}
 	})
 }
