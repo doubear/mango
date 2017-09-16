@@ -9,11 +9,19 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/crypto/acme"
+
 	"github.com/go-mango/logy"
 	"github.com/go-mango/mango/common"
 	"github.com/go-mango/mango/middleware"
 
 	"golang.org/x/crypto/acme/autocert"
+)
+
+const (
+	leStagingDirectory = "https://acme-staging.api.letsencrypt.org/directory"
+	stagingMode        = iota
+	prodMode
 )
 
 //Plugin an plugin for mango.
@@ -25,6 +33,7 @@ type Mango struct {
 	middles  []common.MiddleFunc
 	notFound common.HandlerFunc
 	cacher   Cacher
+	mode     int
 }
 
 //NewContext create new Context instance
@@ -114,6 +123,16 @@ func (m *Mango) Group(path string, fn GroupFunc, middles ...common.MiddleFunc) {
 	})
 }
 
+//RunInStagingMode sets staging mode in runtime.
+func (m *Mango) RunInStagingMode() {
+	m.mode = stagingMode
+}
+
+//RunInProdMode sets production mode in runtime.
+func (m *Mango) RunInProdMode() {
+	m.mode = prodMode
+}
+
 func (m *Mango) start(addr string, fn func(*http.Server)) {
 	shouldStop := make(chan os.Signal)
 	signal.Notify(shouldStop, os.Interrupt, os.Kill)
@@ -166,11 +185,17 @@ func (m *Mango) StartTLS(addr, certFile, keyFile string) {
 //StartAutoTLS starts a TLS server with auto-generated SSL certificate.
 //certificates are signed by let's encrypt.
 func (m *Mango) StartAutoTLS(addr string, caStore autocert.Cache, domains ...string) {
+	var caClient *acme.Client
+	if m.mode == stagingMode {
+		caClient = &acme.Client{DirectoryURL: leStagingDirectory}
+	}
+
 	m.start(addr, func(s *http.Server) {
 		c := autocert.Manager{
 			Prompt:     autocert.AcceptTOS,
 			HostPolicy: autocert.HostWhitelist(domains...),
 			Cache:      caStore,
+			Client:     caClient,
 		}
 
 		s.TLSConfig = &tls.Config{GetCertificate: c.GetCertificate}
