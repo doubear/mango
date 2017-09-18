@@ -19,7 +19,7 @@ type Response interface {
 	SetStatus(int)
 	SetCookie(*http.Cookie)
 	DelCookie(string)
-	Redirect(i int, to string)
+	Redirect(int, string)
 	Buffered() []byte
 	Send() error
 }
