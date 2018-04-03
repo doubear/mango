@@ -7,27 +7,10 @@ import (
 	"strings"
 
 	"io/ioutil"
+	"github.com/go-mango/mango/contracts"
 
 	"encoding/json"
 )
-
-//Request represents incoming connection.
-type Request interface {
-	Reader() *http.Request
-	IP() string
-	File(string) (*UploadedFile, error)
-	Form(string) string
-	Query(string) string
-	Param(string) string
-	Input(string) string
-	JSON(interface{}) error
-	IsTLS() bool
-	Header() http.Header
-	Method() string
-	URI() string
-	URL() *url.URL
-	Host() string
-}
 
 type request struct {
 	reader *http.Request
@@ -35,15 +18,15 @@ type request struct {
 }
 
 //NewRequest create new request instance.
-func NewRequest(r *http.Request, ps map[string]string) Request {
+func NewRequest(r *http.Request, ps map[string]string) contracts.Request {
 	return &request{
 		r,
 		ps,
 	}
 }
 
-//Reader returns original http.Request
-func (c *request) Reader() *http.Request {
+//Parent returns original http.Request
+func (c *request) Parent() *http.Request {
 	return c.reader
 }
 
@@ -67,13 +50,13 @@ func (c *request) IP() string {
 }
 
 //File receives file from MULTI-PART FORM.
-func (c *request) File(k string) (*UploadedFile, error) {
+func (c *request) File(k string) (contracts.UploadedFile, error) {
 	f, h, err := c.reader.FormFile(k)
 	if err != nil {
 		return nil, err
 	}
 
-	return &UploadedFile{h, f}, nil
+	return NewUploadedFile(h, f), nil
 }
 
 //Form retrieves value from POST form.

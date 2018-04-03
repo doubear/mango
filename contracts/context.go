@@ -1,4 +1,4 @@
-package common
+package contracts
 
 //Context represents incoming connection.
 type Context interface {
