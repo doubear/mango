@@ -2,7 +2,7 @@ package cache
 
 import (
 	"gopkg.in/redis.v5"
-	"github.com/go-mango/mango/contract"
+	"github.com/go-mango/mango/contracts"
 	"github.com/go-mango/logy"
 	"time"
 )
@@ -20,7 +20,7 @@ func (c *RedisCacher) Get(id string) interface{} {
 	var v interface{}
 	err := c.client.Get(id).Scan(v)
 	if err != nil {
-		logy.Warn(err.Error())
+		logy.W(err.Error())
 		return nil
 	}
 
