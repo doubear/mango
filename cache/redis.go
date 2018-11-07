@@ -1,8 +1,11 @@
 package cache
 
-import "gopkg.in/redis.v5"
-import "github.com/go-mango/mango"
-import "time"
+import (
+	"gopkg.in/redis.v5"
+	"github.com/go-mango/mango/contract"
+	"github.com/go-mango/logy"
+	"time"
+)
 
 //RedisCacher redis cache driver.
 type RedisCacher struct {
@@ -17,7 +20,7 @@ func (c *RedisCacher) Get(id string) interface{} {
 	var v interface{}
 	err := c.client.Get(id).Scan(v)
 	if err != nil {
-		mango.Warn(err.Error())
+		logy.Warn(err.Error())
 		return nil
 	}
 
@@ -61,7 +64,7 @@ func (c *RedisCacher) GC() {
 }
 
 //Redis create redis cache driver instance.
-func Redis(opt RedisOption) mango.Cacher {
+func Redis(opt RedisOption) contracts.Cacher {
 	r := redis.Options(opt)
 	client := redis.NewClient(&r)
 	return &RedisCacher{client}

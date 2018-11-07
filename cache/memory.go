@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-mango/mango"
+	"github.com/go-mango/mango/contracts"
 )
 
 type memoryItem struct {
@@ -103,7 +103,7 @@ func (c *MemoryCacher) GC() {
 }
 
 //Memory creates cache provider instance.
-func Memory(gc time.Duration) mango.Cacher {
+func Memory(gc time.Duration) contracts.Cacher {
 	return &MemoryCacher{
 		make(map[string]*memoryItem, 0),
 		make(map[string]*memoryQueue, 0),
