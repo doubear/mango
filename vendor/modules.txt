@@ -1,0 +1,11 @@
+# github.com/go-mango/logy v0.0.0-20170915163631-5a3c77326502
+github.com/go-mango/logy
+# github.com/satori/go.uuid v1.2.0
+github.com/satori/go.uuid
+# gopkg.in/redis.v5 v5.2.9
+gopkg.in/redis.v5
+gopkg.in/redis.v5/internal
+gopkg.in/redis.v5/internal/consistenthash
+gopkg.in/redis.v5/internal/hashtag
+gopkg.in/redis.v5/internal/pool
+gopkg.in/redis.v5/internal/proto

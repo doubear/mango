@@ -12,8 +12,9 @@ import (
 	"golang.org/x/crypto/acme"
 
 	"github.com/go-mango/logy"
-	"github.com/go-mango/mango/common"
-	"github.com/go-mango/mango/middleware"
+	"github.com/go-mango/mango/contracts"
+	"github.com/go-mango/mango/middlewares"
+	mhttp "github.com/go-mango/mango/http"
 
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -30,17 +31,17 @@ type Plugin func(*Mango)
 //Mango main struct.
 type Mango struct {
 	router   *router
-	middles  []common.MiddleFunc
-	notFound common.HandlerFunc
-	cacher   Cacher
+	middles  []contracts.MiddleFunc
+	notFound contracts.HandlerFunc
+	cacher   contracts.Cacher
 	mode     int
 }
 
 //NewContext create new Context instance
-func (m *Mango) newContext(r *http.Request, w http.ResponseWriter, ps map[string]string, ms []common.MiddleFunc) *context {
+func (m *Mango) newContext(r *http.Request, w http.ResponseWriter, ps map[string]string, ms []contracts.MiddleFunc) *context {
 	return &context{
-		common.NewRequest(r, ps),
-		common.NewResponse(w),
+		mhttp.NewRequest(r, ps),
+		mhttp.NewResponse(w),
 		m.cacher,
 		ms,
 		map[string]interface{}{},
@@ -48,7 +49,7 @@ func (m *Mango) newContext(r *http.Request, w http.ResponseWriter, ps map[string
 }
 
 //SetCacher sets cache provider.
-func (m *Mango) SetCacher(c Cacher) {
+func (m *Mango) SetCacher(c contracts.Cacher) {
 	m.cacher = c
 }
 
@@ -56,8 +57,8 @@ func (m *Mango) SetCacher(c Cacher) {
 //or load plugin to framework.
 func (m *Mango) Use(fn interface{}) {
 	switch fn.(type) {
-	case common.MiddleFunc:
-		m.middles = append(m.middles, fn.(common.MiddleFunc))
+	case contracts.MiddleFunc:
+		m.middles = append(m.middles, fn.(contracts.MiddleFunc))
 	case Plugin:
 		fn.(Plugin)(m)
 	default:
@@ -66,32 +67,32 @@ func (m *Mango) Use(fn interface{}) {
 }
 
 //NotFound set customized not found error handler.
-func (m *Mango) NotFound(fn common.HandlerFunc) {
+func (m *Mango) NotFound(fn contracts.HandlerFunc) {
 	m.notFound = fn
 }
 
 //Get register a GET route.
-func (m *Mango) Get(path string, fn common.HandlerFunc, middles ...common.MiddleFunc) {
+func (m *Mango) Get(path string, fn contracts.HandlerFunc, middles ...contracts.MiddleFunc) {
 	m.router.route([]string{"GET"}, path, fn, middles)
 }
 
 //Post register a POST route.
-func (m *Mango) Post(path string, fn common.HandlerFunc, middles ...common.MiddleFunc) {
+func (m *Mango) Post(path string, fn contracts.HandlerFunc, middles ...contracts.MiddleFunc) {
 	m.router.route([]string{"POST"}, path, fn, middles)
 }
 
 //Put register a PUT route.
-func (m *Mango) Put(path string, fn common.HandlerFunc, middles ...common.MiddleFunc) {
+func (m *Mango) Put(path string, fn contracts.HandlerFunc, middles ...contracts.MiddleFunc) {
 	m.router.route([]string{"PUT"}, path, fn, middles)
 }
 
 //Delete register a DELETE route.
-func (m *Mango) Delete(path string, fn common.HandlerFunc, middles ...common.MiddleFunc) {
+func (m *Mango) Delete(path string, fn contracts.HandlerFunc, middles ...contracts.MiddleFunc) {
 	m.router.route([]string{"DELETE"}, path, fn, middles)
 }
 
 //Any register a route without request type limit.
-func (m *Mango) Any(path string, fn common.HandlerFunc, middles ...common.MiddleFunc) {
+func (m *Mango) Any(path string, fn contracts.HandlerFunc, middles ...contracts.MiddleFunc) {
 	m.router.route([]string{"GET", "POST", "PUT", "DELETE"}, path, fn, middles)
 }
 
@@ -102,7 +103,7 @@ func (m *Mango) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			method:     "*",
 			path:       "/",
 			handler:    m.notFound,
-			middlePool: make([]common.MiddleFunc, 0),
+			middlePool: make([]contracts.MiddleFunc, 0),
 		}
 	}
 
@@ -114,7 +115,7 @@ func (m *Mango) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 //Group create route group with dedicated prefix path.
-func (m *Mango) Group(path string, fn GroupFunc, middles ...common.MiddleFunc) {
+func (m *Mango) Group(path string, fn GroupFunc, middles ...contracts.MiddleFunc) {
 	path = strings.Trim(path, " /")
 	fn(&GroupRouter{
 		[]string{path},
@@ -216,12 +217,12 @@ func New() *Mango {
 		make(map[string][]*route, 0),
 	}
 
-	m.notFound = func(ctx common.Context) (int, interface{}) {
+	m.notFound = func(ctx contracts.Context) (int, interface{}) {
 		ctx.Response().SetStatus(http.StatusNotFound)
 		return 0, nil
 	}
 
-	m.middles = make([]common.MiddleFunc, 0)
+	m.middles = make([]contracts.MiddleFunc, 0)
 
 	return m
 }
@@ -229,7 +230,7 @@ func New() *Mango {
 //Default returns an Mango instance that uses few middlewares.
 func Default() *Mango {
 	m := New()
-	m.Use(middleware.Record())
+	m.Use(middlewares.Record())
 	m.Use(Recovery())
 	return m
 }

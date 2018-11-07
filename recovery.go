@@ -5,12 +5,12 @@ import (
 	"net/http"
 
 	"github.com/go-mango/logy"
-	"github.com/go-mango/mango/common"
+	"github.com/go-mango/mango/contracts"
 )
 
 //Recovery record every panic.
-func Recovery() common.MiddleFunc {
-	return func(ctx common.Context) {
+func Recovery() contracts.MiddleFunc {
+	return func(ctx contracts.Context) {
 		defer func() {
 			if v := recover(); v != nil {
 				var err error

@@ -3,34 +3,34 @@ package mango
 import (
 	"strings"
 
-	"github.com/go-mango/mango/common"
+	"github.com/go-mango/mango/contracts"
 )
 
 type context struct {
-	R       common.Request
-	W       common.Response
-	C       Cacher
-	middles []common.MiddleFunc
+	R       contracts.Request
+	W       contracts.Response
+	C       contracts.Cacher
+	middles []contracts.MiddleFunc
 	dict    map[string]interface{}
 }
 
-func newContext(r common.Request, w common.Response, c Cacher) common.Context {
+func newContext(r contracts.Request, w contracts.Response, c contracts.Cacher) contracts.Context {
 	return &context{
 		r,
 		w,
 		c,
-		make([]common.MiddleFunc, 0),
+		make([]contracts.MiddleFunc, 0),
 		make(map[string]interface{}),
 	}
 }
 
 //Request returns wrapped http.Request
-func (c *context) Request() common.Request {
+func (c *context) Request() contracts.Request {
 	return c.R
 }
 
 //Response returns wrapped http.ResponseWriter
-func (c *context) Response() common.Response {
+func (c *context) Response() contracts.Response {
 	return c.W
 }
 
