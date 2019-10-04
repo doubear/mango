@@ -14,8 +14,8 @@ type CorsOption struct {
 }
 
 //Cors additional CORS middleware
-func Cors(opt CorsOption) contracts.MiddleFunc {
-	return func(ctx contracts.Context) {
+func Cors(opt CorsOption) contracts.ThenableFunc {
+	return func(ctx contracts.ThenableContext) {
 		ctx.Response().Header().Add("Access-Control-Allow-Origin", opt.Origin)
 		ctx.Response().Header().Add("Access-Control-Allow-Methods", opt.Methods)
 		ctx.Response().Header().Add("Access-Control-Allow-Headers", opt.Headers)

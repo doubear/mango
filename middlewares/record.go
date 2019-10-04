@@ -8,20 +8,20 @@ import (
 )
 
 //Record log incoming requests to console.
-func Record() contracts.MiddleFunc {
-	return func(ctx contracts.Context) {
+func Record() contracts.ThenableFunc {
+	return func(ctx contracts.ThenableContext) {
 		st := time.Now()
 		ctx.Next()
 		dur := time.Since(st).String()
 
 		logy.Std().Infof(
-			"%s %s %s %d %dB %s",
+			"%d %s\t%dB\t%s\t%s\t%s",
+			ctx.Response().Status(),
+			dur,
+			ctx.Response().Size(),
 			ctx.Request().IP(),
 			ctx.Request().Method(),
 			ctx.Request().URI(),
-			ctx.Response().Status(),
-			ctx.Response().Size(),
-			dur,
 		)
 	}
 }

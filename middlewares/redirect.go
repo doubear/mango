@@ -13,8 +13,8 @@ type RedirectOption struct {
 }
 
 //Redirect recirects  requests.
-func Redirect(opt RedirectOption) contracts.MiddleFunc {
-	return func(ctx contracts.Context) {
+func Redirect(opt RedirectOption) contracts.ThenableFunc {
+	return func(ctx contracts.ThenableContext) {
 		if opt.MustHOST != "" && ctx.Request().Host() != opt.MustHOST {
 			to := *ctx.Request().URL()
 			to.Scheme = "http"

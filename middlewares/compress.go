@@ -8,8 +8,8 @@ import (
 )
 
 //Compress compress response data.
-func Compress() contracts.MiddleFunc {
-	return func(ctx contracts.Context) {
+func Compress() contracts.ThenableFunc {
+	return func(ctx contracts.ThenableContext) {
 		ctx.Next() //continues to execute middlewares.
 
 		if ctx.Response().Size() == 0 {

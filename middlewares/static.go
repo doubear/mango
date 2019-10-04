@@ -25,7 +25,7 @@ type StaticOption struct {
 }
 
 //Static serve static assets
-func Static(opt StaticOption) contracts.MiddleFunc {
+func Static(opt StaticOption) contracts.ThenableFunc {
 
 	if opt.Path == "" {
 		opt.Path = "/"
@@ -36,7 +36,7 @@ func Static(opt StaticOption) contracts.MiddleFunc {
 		opt.Path = "/" + opt.Path
 	}
 
-	return func(ctx contracts.Context) {
+	return func(ctx contracts.ThenableContext) {
 		fpath := ctx.Request().URL().Path
 		if strings.HasPrefix(fpath, opt.Path) {
 			fpath = fpath[len(opt.Path):]

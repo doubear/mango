@@ -4,9 +4,9 @@ import (
 	"net/http"
 )
 
-//Response 代表即将发送到客户端的响应体
+// Response is interface of data will be sent to client.
 type Response interface {
-	Writer() http.ResponseWriter
+	Parent() http.ResponseWriter
 	Write([]byte) (int, error)
 	WriteString(string) (int, error)
 	WriteJSON(interface{}) error
@@ -17,7 +17,7 @@ type Response interface {
 	SetStatus(int)
 	SetCookie(*http.Cookie)
 	DelCookie(string)
-	Redirect(int, string)
+	Redirect(int, string) (int, interface{})
 	Buffered() []byte
 	Send() error
 }

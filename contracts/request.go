@@ -1,18 +1,18 @@
 package contracts
 
 import (
-	"net/url"
 	"net/http"
+	"net/url"
 )
 
-//Request 代表单个入站请求
+// Request represents incoming data from client.
 type Request interface {
 	Parent() *http.Request
 	IP() string
 	File(string) (UploadedFile, error)
 	Form(string) string
 	Query(string) string
-	Param(string) string
+	Arg(string) string
 	Input(string) string
 	JSON(interface{}) error
 	IsTLS() bool
@@ -21,4 +21,6 @@ type Request interface {
 	URI() string
 	URL() *url.URL
 	Host() string
+	SetArgs(map[string]string)
+	Args() map[string]string
 }

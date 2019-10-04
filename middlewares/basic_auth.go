@@ -17,8 +17,8 @@ import (
 
 	m.Use(mango.BasicAuth(credentials))
 */
-func BasicAuth(credentials map[string]string) contracts.MiddleFunc {
-	return func(ctx contracts.Context) {
+func BasicAuth(credentials map[string]string) contracts.ThenableFunc {
+	return func(ctx contracts.ThenableContext) {
 		if token := ctx.Request().Header().Get("Authorization"); token != "" {
 			if strings.HasPrefix(token, "Basic ") {
 				token = token[6:]

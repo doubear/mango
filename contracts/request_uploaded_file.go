@@ -4,7 +4,7 @@ import (
 	"net/textproto"
 )
 
-//UploadedFile 表示单个文件上传后的具体实例
+// UploadedFile is interface of uploaded files handler.
 type UploadedFile interface {
 	Header() textproto.MIMEHeader
 	Filename() string

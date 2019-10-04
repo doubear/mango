@@ -24,7 +24,7 @@ func (t *throttle) reset() {
 
 //Throttle controls how much request frequency
 //from remote client is allowed.
-func Throttle(qps int) contracts.MiddleFunc {
+func Throttle(qps int) contracts.ThenableFunc {
 
 	if qps < 0 {
 		logy.Std().Error("ThrottleOption QPS must larger than 0")
@@ -37,7 +37,7 @@ func Throttle(qps int) contracts.MiddleFunc {
 
 	var hashmap = make(map[string]*throttle) //summary & times
 
-	return func(ctx contracts.Context) {
+	return func(ctx contracts.ThenableContext) {
 		label := ctx.Request().IP() + ctx.Request().URI()
 		barr := sha1.Sum([]byte(label))
 		sum := hex.EncodeToString(barr[:])

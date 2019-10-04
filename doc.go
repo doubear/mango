@@ -1,2 +1,2 @@
-//Package mango provides you a simple micro framework.
+//Package mango is a simple micro framework.
 package mango

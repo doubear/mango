@@ -4,8 +4,8 @@ package contracts
 type Context interface {
 	Request() Request
 	Response() Response
-	Next()
-	Get(string) interface{}
-	Set(string, interface{})
+	Auth() Authenable
 	URL(string, map[string]string) string
+	Cache() Cachable
+	Session() Session
 }

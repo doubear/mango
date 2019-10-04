@@ -1,4 +1,5 @@
 # Mango - keep simple, keep easy to use.
+
 [![GoDoc](https://godoc.org/github.com/go-mango/mango?status.svg)](https://godoc.org/github.com/go-mango/mango)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-mango/mango)](https://goreportcard.com/report/github.com/go-mango/mango)
 
@@ -19,7 +20,7 @@ import "gopkg.in/mango.v0"
 ## Quick Start
 
 ```go
-func index(ctx *mango.Context) (int, interface{}) {
+func index(ctx contracts.Context) (int, interface{}) {
 	return 200, map[string]interface{}{
 		"message": "hello mango",
 	}
@@ -136,7 +137,9 @@ m.StartAutoTLS(":https", "example.org")
 ```
 
 ## Benchmark
+
 ??? what's that???
 
 ## License
+
 Based on MIT license.
