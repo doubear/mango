@@ -3,6 +3,7 @@ package middlewares
 import (
 	"fmt"
 	"net/http"
+	"runtime/debug"
 
 	"github.com/go-mango/logy"
 	"github.com/go-mango/mango/contracts"
@@ -22,6 +23,8 @@ func Recovery() contracts.ThenableFunc {
 				}
 
 				logy.Std().Warnf("RECOVERED:", err.Error())
+
+				debug.PrintStack()
 
 				ctx.Response().SetStatus(http.StatusInternalServerError)
 			}
