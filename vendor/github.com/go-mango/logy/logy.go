@@ -1,49 +1,72 @@
 package logy
 
-import "io"
+import (
+	"os"
+	"sync"
+)
 
-var l *Logger
+var std = New("LOGY")
 
-func init() {
-	l = New()
+// Std returns default Logy instance can be uses directly.
+func Std() Logy {
+	return std
 }
 
-//D 写入debug级日志信息
-func D(s interface{}, a ...interface{}) {
-	l.D(s, a...)
+// Clone returns cloned Logy struct.
+func Clone(name string) Logy {
+	logger := std.Clone()
+	logger.SetName(name)
+	return logger
 }
 
-//I 写入 info 级日志信息
-func I(s interface{}, a ...interface{}) {
-	l.I(s, a...)
-}
+// levels
+const (
+	levelDebug = iota
+	levelInfo
+	levelWarn
+	levelError
+)
 
-//W 写入 warn 级日志信息
-func W(s interface{}, a ...interface{}) {
-	l.W(s, a...)
-}
+// Colors
+const (
+	colorBlack = 30 + iota
+	colorRed
+	colorGreen
+	colorYellow
+	colorBlue
+	colorPurple
+	colorCyan
+	colorWhite
+	colorNone = 0
+)
 
-//E 写入 error 级日志信息
-func E(s interface{}, a ...interface{}) {
-	l.E(s, a...)
-}
+var (
+	levels = []string{
+		"DEBUG",
+		"INFO",
+		"WARN",
+		"ERROR",
+	}
 
-//SetLevel 设置需要记录的最低日志等级
-func SetLevel(lv int) {
-	l.SetLevel(lv)
-}
+	colors = map[int]int{
+		levelDebug: colorNone,
+		levelInfo:  colorGreen,
+		levelWarn:  colorYellow,
+		levelError: colorRed,
+	}
+)
 
-//SetOutput 设置日志输出文件
-func SetOutput(w io.Writer) {
-	l.SetOutput(w)
-}
+// New create and return new Logy instance.
+func New(name string) Logy {
+	l := &logy{
+		new(sync.Mutex),
+		name,
+		nil,
+		levelDebug,
+		"15:04:05",
+	}
 
-//SetPrefix 设置日志信息前缀
-func SetPrefix(s string) {
-	l.SetPrefix(s)
-}
+	l.SetOutput(os.Stdout)
 
-//SetDateFormat 设置日志创建时间记录格式
-func SetDateFormat(f string) {
-	l.SetDateFormat(f)
+	return l
 }

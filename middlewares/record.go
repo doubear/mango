@@ -14,7 +14,7 @@ func Record() contracts.MiddleFunc {
 		ctx.Next()
 		dur := time.Since(st).String()
 
-		logy.I(
+		logy.Std().Infof(
 			"%s %s %s %d %dB %s",
 			ctx.Request().IP(),
 			ctx.Request().Method(),

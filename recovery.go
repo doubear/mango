@@ -3,6 +3,7 @@ package mango
 import (
 	"fmt"
 	"net/http"
+	"runtime/debug"
 
 	"github.com/go-mango/logy"
 	"github.com/go-mango/mango/contracts"
@@ -21,7 +22,9 @@ func Recovery() contracts.MiddleFunc {
 					err = fmt.Errorf("%v", v)
 				}
 
-				logy.W(err.Error())
+				logy.Std().Warn(err.Error())
+
+				debug.PrintStack()
 
 				ctx.Response().SetStatus(http.StatusInternalServerError)
 			}

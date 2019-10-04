@@ -13,8 +13,8 @@ import (
 
 	"github.com/go-mango/logy"
 	"github.com/go-mango/mango/contracts"
-	"github.com/go-mango/mango/middlewares"
 	mhttp "github.com/go-mango/mango/http"
+	"github.com/go-mango/mango/middlewares"
 
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -62,7 +62,7 @@ func (m *Mango) Use(fn interface{}) {
 	case Plugin:
 		fn.(Plugin)(m)
 	default:
-		logy.E("use an invalid value")
+		logy.Std().Error("use an invalid value")
 	}
 }
 
@@ -147,20 +147,20 @@ func (m *Mango) start(addr string, fn func(*http.Server)) {
 		fn(server)
 	}()
 
-	logy.I("Server is running on " + addr)
+	logy.Std().Info("Server is running on " + addr)
 
 	<-shouldStop
-	logy.W("Server is shutting down...")
+	logy.Std().Warn("Server is shutting down...")
 
 	ctx, cancel := pcontext.WithTimeout(pcontext.Background(), 10*time.Second)
 	defer cancel()
 
 	err := server.Shutdown(ctx)
 	if err != nil {
-		logy.W(err.Error())
+		logy.Std().Warn(err.Error())
 	}
 
-	logy.I("Server stopped gracefully.")
+	logy.Std().Info("Server stopped gracefully.")
 }
 
 //Start starts a standard http server.
@@ -168,7 +168,7 @@ func (m *Mango) Start(addr string) {
 	m.start(addr, func(s *http.Server) {
 		err := s.ListenAndServe()
 		if err != nil {
-			logy.E(err.Error())
+			logy.Std().Error(err.Error())
 		}
 	})
 }
@@ -178,7 +178,7 @@ func (m *Mango) StartTLS(addr, certFile, keyFile string) {
 	m.start(addr, func(s *http.Server) {
 		err := s.ListenAndServeTLS(certFile, keyFile)
 		if err != nil {
-			logy.E(err.Error())
+			logy.Std().Error(err.Error())
 		}
 	})
 }
@@ -203,7 +203,7 @@ func (m *Mango) StartAutoTLS(addr string, caStore autocert.Cache, domains ...str
 
 		err := s.ListenAndServeTLS("", "")
 		if err != nil {
-			logy.E(err.Error())
+			logy.Std().Error(err.Error())
 		}
 	})
 }

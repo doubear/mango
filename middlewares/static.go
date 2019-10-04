@@ -29,7 +29,7 @@ func Static(opt StaticOption) contracts.MiddleFunc {
 
 	if opt.Path == "" {
 		opt.Path = "/"
-		logy.W("StaticOption auto resets Path to /")
+		logy.Std().Warn("StaticOption auto resets Path to /")
 	}
 
 	if len(opt.Path) > 1 && opt.Path[0] != '/' {

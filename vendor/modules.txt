@@ -1,7 +1,17 @@
-# github.com/go-mango/logy v0.0.0-20170915163631-5a3c77326502
+# github.com/go-mango/logy v0.0.0-20190106192939-a52326a1786b
 github.com/go-mango/logy
 # github.com/satori/go.uuid v1.2.0
 github.com/satori/go.uuid
+# golang.org/x/crypto v0.0.0-20191002192127-34f69633bfdc
+golang.org/x/crypto/acme
+golang.org/x/crypto/acme/autocert
+# golang.org/x/net v0.0.0-20191003171128-d98b1b443823
+golang.org/x/net/idna
+# golang.org/x/text v0.3.2
+golang.org/x/text/secure/bidirule
+golang.org/x/text/transform
+golang.org/x/text/unicode/bidi
+golang.org/x/text/unicode/norm
 # gopkg.in/redis.v5 v5.2.9
 gopkg.in/redis.v5
 gopkg.in/redis.v5/internal

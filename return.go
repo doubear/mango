@@ -75,7 +75,7 @@ func handleResponse(fn contracts.HandlerFunc) contracts.MiddleFunc {
 func handleError(ctx contracts.Context, err error) {
 	ctx.Response().SetStatus(http.StatusInternalServerError)
 	ctx.Response().Clear()
-	logy.W(err.Error())
+	logy.Std().Warn(err.Error())
 }
 
 func handleJsonable(ctx contracts.Context, v interface{}) {

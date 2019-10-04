@@ -27,12 +27,12 @@ func (t *throttle) reset() {
 func Throttle(qps int) contracts.MiddleFunc {
 
 	if qps < 0 {
-		logy.E("ThrottleOption QPS must larger than 0")
+		logy.Std().Error("ThrottleOption QPS must larger than 0")
 	}
 
 	if qps == 0 {
 		qps = 15
-		logy.W("ThrottleOption uses default rate 15 req/s")
+		logy.Std().Warn("ThrottleOption uses default rate 15 req/s")
 	}
 
 	var hashmap = make(map[string]*throttle) //summary & times
