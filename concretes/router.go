@@ -74,7 +74,7 @@ func (router *router) searchPool(r contracts.Request) (contracts.Route, map[stri
 			if route.Pathable().MatchString(r.URL().Path) {
 				params := map[string]string{}
 				names := route.Pathable().SubexpNames()[1:]
-				values := route.Pathable().FindStringSubmatch(r.URI())[1:]
+				values := route.Pathable().FindStringSubmatch(r.URL().Path)[1:]
 
 				if len(names) != len(values) {
 					continue
